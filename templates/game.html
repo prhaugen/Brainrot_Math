@@ -556,6 +556,17 @@
     .b-name { font-size: 1.1rem; margin: 4px 0 2px; }
     .b-desc { font-size: .82rem; color: #aaa; }
 
+    .speed-badge {
+      display: inline-block;
+      border-radius: 12px;
+      padding: 4px 14px;
+      font-size: .9rem;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    .speed-lightning { background: #3c1a6b; color: #e040fb; box-shadow: 0 0 10px rgba(224,64,251,.4); }
+    .speed-fast      { background: #4d2600; color: var(--gold); }
+
     .correct-answer-box { font-size: 1rem; margin: 10px 0; color: #aaa; }
     .correct-answer-box span { font-size: 2.8rem; display: block; margin-top: 4px; }
 
@@ -863,7 +874,7 @@ const LEVEL_UNLOCK = [
   "Multiplication unlocked! ✖️",
 ];
 
-const TIMER_MS = 10000;
+const TIMER_MS = 15000;
 const RARITY_COLORS = {
   common: "r-common", uncommon: "r-uncommon", rare: "r-rare",
   epic: "r-epic", legendary: "r-legendary"
@@ -874,6 +885,7 @@ const RARITY_COLORS = {
 let rafId              = null;
 let timerStart         = null;
 let timerRemaining     = TIMER_MS;
+let problemStartTime   = null;
 let answered           = false;
 let paused             = false;
 let collectionPaused   = false;
@@ -1101,6 +1113,7 @@ async function loadProblem() {
   });
 
   setRival(RIVAL_IDLE);
+  problemStartTime = performance.now();
   startTimer();
 }
 
@@ -1114,10 +1127,11 @@ async function submitAnswer(value, isTimeout) {
   stopTimer();
   disableAll();
 
+  const elapsed_ms = problemStartTime ? Math.round(performance.now() - problemStartTime) : TIMER_MS;
   const res  = await fetch("/api/answer", {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ answer: value }),
+    body:    JSON.stringify({ answer: value, elapsed_ms }),
   });
   if (res.status === 401) { showPickerScreen(); return; }
   const data = await res.json();
@@ -1161,16 +1175,23 @@ function onTimeout() {
 
 // ─── OVERLAYS ────────────────────────────────────────────────────────────────
 
+function speedBadge(tier) {
+  if (tier === "lightning") return `<div class="speed-badge speed-lightning">⚡ LIGHTNING FAST! RARITY BOOSTED!</div>`;
+  if (tier === "fast")      return `<div class="speed-badge speed-fast">🔥 Fast answer! Rarity boosted!</div>`;
+  return "";
+}
+
 function showCorrectOverlay(data) {
   $("result-card").className = "ov-card correct-card";
   $("r-emoji").textContent   = "🎉";
   $("r-title").textContent   = "STOLEN! 🦈";
-  $("r-body").innerHTML = data.stolen_brainrot
-    ? brainrotCard(data.stolen_brainrot)
-    : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>";
+  $("r-body").innerHTML = (data.speed_tier ? speedBadge(data.speed_tier) : "")
+    + (data.stolen_brainrot
+        ? brainrotCard(data.stolen_brainrot)
+        : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>");
   $("r-btn").textContent = "NEXT ▶";
   $("result-overlay").classList.remove("hidden");
-  spawnConfetti(36);
+  spawnConfetti(data.speed_tier === "lightning" ? 60 : 36);
 }
 
 function showWrongOverlay(data) {

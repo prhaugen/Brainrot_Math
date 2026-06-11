@@ -26,12 +26,34 @@ BRAINROTS = [
 ]
 
 RARITIES = ["common", "uncommon", "rare", "epic", "legendary"]
-WEIGHTS  = {
-    1: [70, 25,  5,  0, 0],
-    2: [60, 28, 10,  2, 0],
-    3: [45, 30, 18,  6, 1],
-    4: [30, 28, 25, 13, 4],
-    5: [20, 23, 30, 18, 9],
+# Rarity weights [common, uncommon, rare, epic, legendary] by level and speed tier.
+# lightning = answered in < 3s, fast = 3–7s, normal = 7s+
+WEIGHTS = {
+    1: {
+        "lightning": [10, 28, 38, 18,  6],
+        "fast":      [40, 35, 18,  6,  1],
+        "normal":    [70, 25,  5,  0,  0],
+    },
+    2: {
+        "lightning": [ 8, 22, 38, 24,  8],
+        "fast":      [32, 32, 24,  9,  3],
+        "normal":    [60, 28, 10,  2,  0],
+    },
+    3: {
+        "lightning": [ 6, 16, 34, 30, 14],
+        "fast":      [24, 28, 28, 15,  5],
+        "normal":    [45, 30, 18,  6,  1],
+    },
+    4: {
+        "lightning": [ 4, 12, 28, 34, 22],
+        "fast":      [16, 22, 30, 22, 10],
+        "normal":    [30, 28, 25, 13,  4],
+    },
+    5: {
+        "lightning": [ 3,  8, 22, 37, 30],
+        "fast":      [10, 15, 28, 30, 17],
+        "normal":    [20, 23, 30, 18,  9],
+    },
 }
 
 
@@ -139,8 +161,15 @@ def make_choices(answer):
     return choices
 
 
-def pick_brainrot(level):
-    wts    = WEIGHTS.get(level, WEIGHTS[5])
+def speed_tier(elapsed_ms):
+    if elapsed_ms < 3000:  return "lightning"
+    if elapsed_ms < 7000:  return "fast"
+    return "normal"
+
+
+def pick_brainrot(level, elapsed_ms=15000):
+    tier   = speed_tier(elapsed_ms)
+    wts    = WEIGHTS.get(level, WEIGHTS[5])[tier]
     rarity = random.choices(RARITIES, weights=wts, k=1)[0]
     pool   = [b for b in BRAINROTS if b["rarity"] == rarity] or [BRAINROTS[0]]
     return dict(random.choice(pool))
@@ -270,6 +299,7 @@ def api_answer():
 
     data        = request.get_json()
     chosen      = data.get("answer")
+    elapsed_ms  = int(data.get("elapsed_ms") or 15000)
     correct_ans = session.get("ans")
     if correct_ans is None:
         return jsonify({"error": "no active problem"}), 400
@@ -288,7 +318,7 @@ def api_answer():
         stats["correct"]     += 1
         stats["streak"]      += 1
         stats["best_streak"]  = max(stats["best_streak"], stats["streak"])
-        br = pick_brainrot(old_level)
+        br = pick_brainrot(old_level, elapsed_ms)
         conn.execute(
             "INSERT INTO collection (player_id, brainrot_id, name, emoji, rarity) VALUES (?,?,?,?,?)",
             (pid, br["id"], br["name"], br["emoji"], br["rarity"])
@@ -332,6 +362,7 @@ def api_answer():
         "level":           new_level,
         "level_up":        new_level > old_level,
         "coll_count":      coll_count,
+        "speed_tier":      speed_tier(elapsed_ms) if is_correct else None,
     })
 
 
