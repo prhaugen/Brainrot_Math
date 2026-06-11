@@ -220,6 +220,64 @@
 
     #coll-btn:hover { background: #2a2a5e; }
 
+    /* ─── PAUSE BUTTON ─── */
+    #pause-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      background: var(--bg);
+      border: 2px solid var(--blue);
+      color: var(--blue);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    #pause-btn:hover { background: #1a2a4e; }
+
+    /* ─── PAUSE OVERLAY ─── */
+    #pause-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.82);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+    }
+    #pause-overlay.hidden { display: none; }
+
+    #pause-card {
+      background: var(--card);
+      border: 3px solid var(--blue);
+      border-radius: 28px;
+      padding: 40px 36px;
+      text-align: center;
+      max-width: 300px;
+      width: 90%;
+      animation: popIn .25s ease-out;
+    }
+
+    #pause-card .pause-icon { font-size: 4rem; }
+    #pause-card h2 { font-size: 2.4rem; color: var(--blue); margin: 8px 0 10px; }
+    #pause-card p  { font-size: 1rem; color: #888; margin-bottom: 22px; }
+
+    #resume-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      padding: 16px 48px;
+      font-size: 1.5rem;
+      border: none;
+      border-radius: 20px;
+      background: var(--blue);
+      color: var(--bg);
+      cursor: pointer;
+      box-shadow: 0 6px 0 #1a7aa0;
+      transition: transform .1s;
+    }
+    #resume-btn:hover  { transform: translateY(-2px); }
+    #resume-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1a7aa0; }
+
     /* ─── SCREEN FLASH ─── */
     #flash {
       position: fixed;
@@ -456,6 +514,16 @@
 <!-- Screen flash -->
 <div id="flash"></div>
 
+<!-- Pause overlay -->
+<div id="pause-overlay" class="hidden">
+  <div id="pause-card">
+    <div class="pause-icon">⏸</div>
+    <h2>PAUSED</h2>
+    <p>Tralalero is waiting… 😒</p>
+    <button id="resume-btn" onclick="togglePause()">▶ RESUME</button>
+  </div>
+</div>
+
 <!-- Confetti container -->
 <div id="confetti-box"></div>
 
@@ -465,6 +533,7 @@
   <header>
     <div class="hstat" id="streak-display">🔥 0</div>
     <div id="lvl-badge">LVL <span id="level-display">1</span></div>
+    <button id="pause-btn" onclick="togglePause()">⏸</button>
     <div class="hstat" id="count-display">💎 0</div>
   </header>
 
@@ -569,11 +638,13 @@ const RARITY_COLORS = {
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
-let rafId       = null;
-let timerStart  = null;
-let answered    = false;
-let pendingLvlUp = 0;
-let choiceValues = [];
+let rafId          = null;
+let timerStart     = null;
+let timerRemaining = TIMER_MS;
+let answered       = false;
+let paused         = false;
+let pendingLvlUp   = 0;
+let choiceValues   = [];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -599,22 +670,26 @@ function brainrotCard(br) {
 
 // ─── TIMER ───────────────────────────────────────────────────────────────────
 
-function startTimer() {
+function startTimer(remaining = TIMER_MS) {
   cancelAnimationFrame(rafId);
+  timerRemaining = remaining;
   timerStart = performance.now();
   const bar = $("timer-bar");
-  bar.style.width   = "100%";
-  bar.style.background = "var(--green)";
+  if (remaining === TIMER_MS) {
+    bar.style.width      = "100%";
+    bar.style.background = "var(--green)";
+  }
 
   function tick(now) {
-    const elapsed  = now - timerStart;
-    const pct      = Math.max(0, 1 - elapsed / TIMER_MS);
+    const elapsed = now - timerStart;
+    const left    = Math.max(0, timerRemaining - elapsed);
+    const pct     = left / TIMER_MS;
     bar.style.width = (pct * 100) + "%";
     if      (pct > .6) bar.style.background = "var(--green)";
     else if (pct > .3) bar.style.background = "var(--gold)";
     else               bar.style.background = "var(--red)";
 
-    if (pct <= 0) {
+    if (left <= 0) {
       if (!answered) onTimeout();
       return;
     }
@@ -623,15 +698,42 @@ function startTimer() {
   rafId = requestAnimationFrame(tick);
 }
 
+function pauseTimer() {
+  const elapsed  = performance.now() - timerStart;
+  timerRemaining = Math.max(0, timerRemaining - elapsed);
+  cancelAnimationFrame(rafId);
+  rafId = null;
+}
+
 function stopTimer() {
   cancelAnimationFrame(rafId);
   rafId = null;
+  timerRemaining = TIMER_MS;
+}
+
+function togglePause() {
+  if (answered) return;
+  paused = !paused;
+  if (paused) {
+    pauseTimer();
+    $("pause-btn").textContent = "▶";
+    $("pause-overlay").classList.remove("hidden");
+    document.querySelectorAll(".choice").forEach(b => b.disabled = true);
+  } else {
+    $("pause-btn").textContent = "⏸";
+    $("pause-overlay").classList.add("hidden");
+    document.querySelectorAll(".choice").forEach(b => b.disabled = false);
+    startTimer(timerRemaining);
+  }
 }
 
 // ─── GAME FLOW ───────────────────────────────────────────────────────────────
 
 async function loadProblem() {
   answered = false;
+  paused   = false;
+  $("pause-btn").textContent = "⏸";
+  $("pause-overlay").classList.add("hidden");
   stopTimer();
 
   document.querySelectorAll(".choice").forEach(btn => {
@@ -664,6 +766,8 @@ function disableAll() {
 }
 
 async function submitAnswer(value, isTimeout) {
+  paused = false;
+  $("pause-overlay").classList.add("hidden");
   stopTimer();
   disableAll();
 
