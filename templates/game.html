@@ -871,13 +871,14 @@ const RARITY_COLORS = {
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
-let rafId          = null;
-let timerStart     = null;
-let timerRemaining = TIMER_MS;
-let answered       = false;
-let paused         = false;
-let pendingLvlUp   = 0;
-let selectedAvatar = AVATARS[0];
+let rafId              = null;
+let timerStart         = null;
+let timerRemaining     = TIMER_MS;
+let answered           = false;
+let paused             = false;
+let collectionPaused   = false;
+let pendingLvlUp       = 0;
+let selectedAvatar     = AVATARS[0];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -1072,8 +1073,9 @@ function togglePause() {
 // ─── GAME FLOW ───────────────────────────────────────────────────────────────
 
 async function loadProblem() {
-  answered = false;
-  paused   = false;
+  answered         = false;
+  paused           = false;
+  collectionPaused = false;
   $("pause-btn").textContent = "⏸";
   $("pause-overlay").classList.add("hidden");
   stopTimer();
@@ -1212,6 +1214,10 @@ function showLevelUp(level) {
 // ─── COLLECTION ──────────────────────────────────────────────────────────────
 
 async function openCollection() {
+  if (!answered && !paused) {
+    pauseTimer();
+    collectionPaused = true;
+  }
   const res   = await fetch("/api/collection");
   const items = await res.json();
   const grid  = $("coll-grid");
@@ -1229,7 +1235,13 @@ async function openCollection() {
   $("coll-modal").classList.remove("hidden");
 }
 
-function closeCollection() { $("coll-modal").classList.add("hidden"); }
+function closeCollection() {
+  $("coll-modal").classList.add("hidden");
+  if (collectionPaused) {
+    collectionPaused = false;
+    startTimer(timerRemaining);
+  }
+}
 
 // ─── CONFETTI ────────────────────────────────────────────────────────────────
 
