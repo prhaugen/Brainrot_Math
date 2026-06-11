@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Brainrot Math Heist 🦈</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0d0d1a;
+      --card:   #1a1a3e;
+      --accent: #e94560;
+      --blue:   #4fc3f7;
+      --gold:   #ffd700;
+      --green:  #00e676;
+      --red:    #ff1744;
+    }
+
+    body {
+      font-family: 'Fredoka One', 'Arial Rounded MT Bold', Arial, sans-serif;
+      background: var(--bg);
+      color: #fff;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* ─── LAYOUT ─── */
+    #game {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding-bottom: 12px;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--card);
+      border-bottom: 3px solid var(--accent);
+      flex-shrink: 0;
+    }
+
+    .hstat {
+      background: var(--bg);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 1.25rem;
+      min-width: 70px;
+      text-align: center;
+    }
+
+    #lvl-badge {
+      background: var(--accent);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 1.1rem;
+    }
+
+    /* ─── RIVAL ─── */
+    #rival-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px 6px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    #rival-emoji {
+      font-size: 3.2rem;
+      animation: float 2.8s ease-in-out infinite;
+      line-height: 1;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    #rival-bubble {
+      background: var(--card);
+      border: 2px solid var(--blue);
+      border-radius: 14px;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      max-width: 300px;
+      text-align: center;
+      position: relative;
+      color: #dde;
+    }
+
+    #rival-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 7px solid transparent;
+      border-bottom-color: var(--blue);
+    }
+
+    /* ─── PROBLEM CARD ─── */
+    #problem-card {
+      background: var(--card);
+      border: 3px solid var(--blue);
+      border-radius: 24px;
+      margin: 8px 16px;
+      padding: 18px 20px 14px;
+      text-align: center;
+      box-shadow: 0 0 24px rgba(79,195,247,.25);
+      flex-shrink: 0;
+    }
+
+    #question {
+      font-size: clamp(2rem, 8vw, 2.8rem);
+      letter-spacing: 3px;
+      margin-bottom: 14px;
+      text-shadow: 0 0 12px rgba(79,195,247,.5);
+    }
+
+    #timer-wrap {
+      background: #0d0d2a;
+      border-radius: 10px;
+      height: 16px;
+      overflow: hidden;
+      border: 1px solid #2a2a5a;
+    }
+
+    #timer-bar {
+      height: 100%;
+      border-radius: 10px;
+      width: 100%;
+      background: var(--green);
+      transition: background .4s;
+    }
+
+    /* ─── CHOICES ─── */
+    #choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 10px 16px;
+      flex-shrink: 0;
+    }
+
+    .choice {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      font-size: clamp(1.6rem, 6vw, 2rem);
+      border: none;
+      border-radius: 20px;
+      padding: 22px 8px;
+      cursor: pointer;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,.5);
+      transition: transform .1s, filter .2s;
+      letter-spacing: 1px;
+      min-height: 80px;
+    }
+
+    .choice:nth-child(1) { background: #e74c3c; box-shadow: 0 7px 0 #922b21; }
+    .choice:nth-child(2) { background: #2980b9; box-shadow: 0 7px 0 #1a5276; }
+    .choice:nth-child(3) { background: #27ae60; box-shadow: 0 7px 0 #1e8449; }
+    .choice:nth-child(4) { background: #d68910; box-shadow: 0 7px 0 #7d5109; }
+
+    .choice:not(:disabled):hover  { transform: translateY(-3px); filter: brightness(1.1); }
+    .choice:not(:disabled):active { transform: translateY(5px); box-shadow: 0 2px 0 rgba(0,0,0,.4) !important; }
+    .choice:disabled { cursor: not-allowed; }
+
+    .choice.correct {
+      background: #00c853 !important;
+      box-shadow: 0 7px 0 #007b33 !important;
+      animation: pop .35s ease-out;
+    }
+
+    .choice.wrong {
+      background: var(--red) !important;
+      box-shadow: 0 7px 0 #b71c1c !important;
+      animation: shake .4s ease-out;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-9px); }
+      40%     { transform: translateX(9px); }
+      60%     { transform: translateX(-9px); }
+      80%     { transform: translateX(9px); }
+    }
+
+    /* ─── COLLECTION BUTTON ─── */
+    #coll-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      display: block;
+      width: calc(100% - 32px);
+      margin: 4px 16px 0;
+      padding: 14px;
+      font-size: 1.15rem;
+      background: var(--card);
+      border: 3px solid var(--gold);
+      border-radius: 20px;
+      color: var(--gold);
+      cursor: pointer;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+
+    #coll-btn:hover { background: #2a2a5e; }
+
+    /* ─── SCREEN FLASH ─── */
+    #flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 100;
+    }
+
+    /* ─── OVERLAYS shared ─── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .overlay.hidden { display: none; }
+
+    .ov-card {
+      background: var(--card);
+      border-radius: 28px;
+      padding: 28px 22px;
+      text-align: center;
+      max-width: 340px;
+      width: 92%;
+      border: 4px solid;
+      animation: popIn .3s ease-out;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(.7); opacity: 0; }
+      to   { transform: scale(1);  opacity: 1; }
+    }
+
+    .ov-card.correct-card { border-color: var(--green); }
+    .ov-card.wrong-card   { border-color: var(--red); }
+    .ov-card.timeout-card { border-color: var(--gold); }
+
+    .ov-emoji  { font-size: 3.8rem; margin-bottom: 8px; }
+    .ov-title  { font-size: 2rem; margin-bottom: 12px; }
+
+    .brainrot-card {
+      background: var(--bg);
+      border-radius: 16px;
+      padding: 14px;
+      margin: 10px 0;
+    }
+
+    .b-emoji  { font-size: 3rem; line-height: 1.2; }
+
+    .b-rarity {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: .8rem;
+      text-transform: uppercase;
+      margin: 6px 0 4px;
+      letter-spacing: 1px;
+    }
+
+    .r-common    { background:#424242; color:#bdbdbd; }
+    .r-uncommon  { background:#1b5e20; color:#a5d6a7; }
+    .r-rare      { background:#0d47a1; color:#90caf9; }
+    .r-epic      { background:#4a148c; color:#ce93d8; }
+    .r-legendary { background:#4d3200; color:var(--gold); box-shadow:0 0 8px rgba(255,215,0,.4); }
+
+    .b-name { font-size: 1.1rem; margin: 4px 0 2px; }
+    .b-desc { font-size: .82rem; color: #aaa; }
+
+    .correct-answer-box {
+      font-size: 1rem;
+      margin: 10px 0;
+      color: #aaa;
+    }
+
+    .correct-answer-box span {
+      font-size: 2.8rem;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .ov-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      margin-top: 16px;
+      padding: 16px 44px;
+      font-size: 1.35rem;
+      border: none;
+      border-radius: 20px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #8b1c36;
+      transition: transform .1s;
+    }
+
+    .ov-btn:hover  { transform: translateY(-2px); }
+    .ov-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8b1c36; }
+
+    /* ─── LEVEL-UP OVERLAY ─── */
+    #lvlup-card {
+      background: linear-gradient(135deg, #1a1a3e, #2a1060);
+      border: 4px solid var(--gold);
+      border-radius: 28px;
+      padding: 36px 24px;
+      text-align: center;
+      max-width: 320px;
+      width: 92%;
+      box-shadow: 0 0 48px rgba(255,215,0,.4);
+      animation: popIn .4s ease-out;
+    }
+
+    #lvlup-card .big { font-size: 4.5rem; }
+    #lvlup-card h2   { font-size: 2.6rem; color: var(--gold); margin: 10px 0 6px; }
+    #lvlup-card p    { font-size: 1.1rem; color: #ccc; margin: 4px 0; }
+
+    #lvlup-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      margin-top: 22px;
+      padding: 16px 44px;
+      font-size: 1.4rem;
+      border: none;
+      border-radius: 20px;
+      background: var(--gold);
+      color: var(--bg);
+      cursor: pointer;
+      box-shadow: 0 6px 0 #997a00;
+    }
+
+    /* ─── COLLECTION MODAL ─── */
+    #coll-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.92);
+      z-index: 400;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #coll-modal.hidden { display: none; }
+
+    #coll-inner {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    #coll-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #coll-header h2 { font-size: 1.8rem; }
+
+    #close-coll {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 1.3rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #coll-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .coll-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 14px 10px;
+      text-align: center;
+      border: 2px solid;
+      position: relative;
+    }
+
+    .coll-card.common    { border-color: #424242; }
+    .coll-card.uncommon  { border-color: #4caf50; }
+    .coll-card.rare      { border-color: #2196f3; }
+    .coll-card.epic      { border-color: #9c27b0; }
+    .coll-card.legendary { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,215,0,.35); }
+
+    .cc-emoji { font-size: 2.4rem; line-height: 1.2; }
+    .cc-name  { font-size: .78rem; margin-top: 6px; color: #ccc; line-height: 1.2; }
+
+    .cc-cnt {
+      position: absolute;
+      top: -8px; right: -8px;
+      background: var(--accent);
+      color: #fff;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      font-size: .75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-coll {
+      text-align: center;
+      color: #666;
+      font-size: 1.1rem;
+      padding: 60px 20px;
+      line-height: 1.8;
+    }
+
+    /* ─── CONFETTI ─── */
+    .piece {
+      position: fixed;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 600;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0%   { transform: translateY(-30px) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(105vh) rotate(800deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Screen flash -->
+<div id="flash"></div>
+
+<!-- Confetti container -->
+<div id="confetti-box"></div>
+
+<div id="game">
+
+  <!-- HEADER -->
+  <header>
+    <div class="hstat" id="streak-display">🔥 0</div>
+    <div id="lvl-badge">LVL <span id="level-display">1</span></div>
+    <div class="hstat" id="count-display">💎 0</div>
+  </header>
+
+  <!-- RIVAL -->
+  <div id="rival-area">
+    <div id="rival-emoji">🦈👟</div>
+    <div id="rival-bubble">I'm gonna steal ALL your brainrots! 😈</div>
+  </div>
+
+  <!-- PROBLEM CARD -->
+  <div id="problem-card">
+    <div id="question">Loading…</div>
+    <div id="timer-wrap"><div id="timer-bar"></div></div>
+  </div>
+
+  <!-- ANSWER CHOICES -->
+  <div id="choices">
+    <button class="choice" id="c0"></button>
+    <button class="choice" id="c1"></button>
+    <button class="choice" id="c2"></button>
+    <button class="choice" id="c3"></button>
+  </div>
+
+  <!-- COLLECTION BUTTON -->
+  <button id="coll-btn" onclick="openCollection()">📦 MY COLLECTION (0)</button>
+
+</div><!-- #game -->
+
+
+<!-- RESULT OVERLAY -->
+<div id="result-overlay" class="overlay hidden">
+  <div class="ov-card" id="result-card">
+    <div class="ov-emoji" id="r-emoji"></div>
+    <div class="ov-title" id="r-title"></div>
+    <div id="r-body"></div>
+    <button class="ov-btn" id="r-btn"></button>
+  </div>
+</div>
+
+<!-- LEVEL-UP OVERLAY -->
+<div id="lvlup-overlay" class="overlay hidden">
+  <div id="lvlup-card">
+    <div class="big">🆙</div>
+    <h2>LEVEL UP!</h2>
+    <p>You reached <strong>Level <span id="new-lvl"></span></strong>!</p>
+    <p id="lvl-unlock" style="color:var(--green);margin-top:6px;"></p>
+    <button id="lvlup-btn">LET'S GO! 🔥</button>
+  </div>
+</div>
+
+<!-- COLLECTION MODAL -->
+<div id="coll-modal" class="hidden">
+  <div id="coll-inner">
+    <div id="coll-header">
+      <h2>🦈 YOUR BRAINROTS</h2>
+      <button id="close-coll" onclick="closeCollection()">✕</button>
+    </div>
+    <div id="coll-grid"></div>
+  </div>
+</div>
+
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+
+const RIVAL_IDLE = [
+  "Come on, get one WRONG! 😏",
+  "Tick tock… that timer won't wait! ⏰",
+  "Your brainrots look SO tasty… 🤤",
+  "I'm gonna steal ALL of them! 🦈",
+  "Bet you can't answer this one!",
+  "My brainrots miss you! Come fail! 😈",
+];
+const RIVAL_CORRECT = [
+  "NOOO! That was MINE! 😭",
+  "You got LUCKY! 😤",
+  "I'll get you NEXT time! 👊",
+  "HOW DID YOU KNOW THAT?! 😱",
+  "FINE. TAKE IT. 😤",
+  "This isn't fair… 😒",
+];
+const RIVAL_WRONG = [
+  "HAHAHA! MINE NOW! 😈",
+  "TOO SLOW, TOO BAD! 💀",
+  "GOTCHA! 🦈💨",
+  "STOLEN! That one's MINE now! 😏",
+  "Even I know that answer! 🤣",
+];
+const LEVEL_UNLOCK = [
+  "", "",
+  "Subtraction unlocked! ➖",
+  "Bigger numbers! 🔢",
+  "Up to 100! 💯",
+  "Multiplication unlocked! ✖️",
+];
+
+const TIMER_MS  = 10000;
+const RARITY_COLORS = {
+  common: "r-common", uncommon: "r-uncommon", rare: "r-rare",
+  epic: "r-epic", legendary: "r-legendary"
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+let rafId       = null;
+let timerStart  = null;
+let answered    = false;
+let pendingLvlUp = 0;
+let choiceValues = [];
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+const $ = id => document.getElementById(id);
+
+function setRival(messages) {
+  $("rival-bubble").textContent = messages[Math.floor(Math.random() * messages.length)];
+}
+
+function rarityBadge(rarity) {
+  return `<span class="b-rarity ${RARITY_COLORS[rarity] || 'r-common'}">${rarity}</span>`;
+}
+
+function brainrotCard(br) {
+  return `
+    <div class="brainrot-card">
+      <div class="b-emoji">${br.emoji}</div>
+      ${rarityBadge(br.rarity)}
+      <div class="b-name">${br.name}</div>
+      <div class="b-desc">${br.desc}</div>
+    </div>`;
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+
+function startTimer() {
+  cancelAnimationFrame(rafId);
+  timerStart = performance.now();
+  const bar = $("timer-bar");
+  bar.style.width   = "100%";
+  bar.style.background = "var(--green)";
+
+  function tick(now) {
+    const elapsed  = now - timerStart;
+    const pct      = Math.max(0, 1 - elapsed / TIMER_MS);
+    bar.style.width = (pct * 100) + "%";
+    if      (pct > .6) bar.style.background = "var(--green)";
+    else if (pct > .3) bar.style.background = "var(--gold)";
+    else               bar.style.background = "var(--red)";
+
+    if (pct <= 0) {
+      if (!answered) onTimeout();
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+function stopTimer() {
+  cancelAnimationFrame(rafId);
+  rafId = null;
+}
+
+// ─── GAME FLOW ───────────────────────────────────────────────────────────────
+
+async function loadProblem() {
+  answered = false;
+  stopTimer();
+
+  document.querySelectorAll(".choice").forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove("correct", "wrong");
+    btn.style.filter = "";
+  });
+
+  const res  = await fetch("/api/problem", { method: "POST" });
+  const data = await res.json();
+
+  $("question").textContent       = data.question;
+  $("streak-display").textContent = "🔥 " + data.streak;
+  $("level-display").textContent  = data.level;
+  $("count-display").textContent  = "💎 " + data.coll_count;
+  $("coll-btn").textContent       = `📦 MY COLLECTION (${data.coll_count})`;
+
+  choiceValues = data.choices;
+  document.querySelectorAll(".choice").forEach((btn, i) => {
+    btn.textContent   = data.choices[i];
+    btn.dataset.value = data.choices[i];
+  });
+
+  setRival(RIVAL_IDLE);
+  startTimer();
+}
+
+function disableAll() {
+  document.querySelectorAll(".choice").forEach(btn => btn.disabled = true);
+}
+
+async function submitAnswer(value, isTimeout) {
+  stopTimer();
+  disableAll();
+
+  const res  = await fetch("/api/answer", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ answer: value }),
+  });
+  const data = await res.json();
+
+  $("streak-display").textContent = "🔥 " + data.streak;
+  $("level-display").textContent  = data.level;
+  $("count-display").textContent  = "💎 " + data.coll_count;
+  $("coll-btn").textContent       = `📦 MY COLLECTION (${data.coll_count})`;
+
+  if (data.level_up) pendingLvlUp = data.level;
+
+  if (isTimeout) {
+    flashScreen("rgba(255,215,0,.45)");
+    setRival(RIVAL_WRONG);
+    setTimeout(() => showTimeoutOverlay(data), 300);
+    return;
+  }
+
+  // Highlight buttons
+  document.querySelectorAll(".choice").forEach(btn => {
+    const v = parseInt(btn.dataset.value);
+    if (v === data.correct_answer) btn.classList.add("correct");
+    else if (v === value)          btn.classList.add("wrong");
+    else                           btn.style.filter = "brightness(0.35)";
+  });
+
+  if (data.correct) {
+    flashScreen("rgba(0,230,118,.4)");
+    setRival(RIVAL_CORRECT);
+    setTimeout(() => showCorrectOverlay(data), 500);
+  } else {
+    flashScreen("rgba(255,23,68,.4)");
+    setRival(RIVAL_WRONG);
+    setTimeout(() => showWrongOverlay(data), 650);
+  }
+}
+
+function onTimeout() {
+  if (answered) return;
+  answered = true;
+  submitAnswer(null, true);
+}
+
+// ─── OVERLAYS ────────────────────────────────────────────────────────────────
+
+function showCorrectOverlay(data) {
+  const card = $("result-card");
+  card.className = "ov-card correct-card";
+  $("r-emoji").textContent = "🎉";
+  $("r-title").textContent = "STOLEN! 🦈";
+
+  $("r-body").innerHTML = data.stolen_brainrot
+    ? brainrotCard(data.stolen_brainrot)
+    : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>";
+
+  $("r-btn").textContent = "NEXT ▶";
+  $("result-overlay").classList.remove("hidden");
+  spawnConfetti(36);
+}
+
+function showWrongOverlay(data) {
+  const card = $("result-card");
+  card.className = "ov-card wrong-card";
+
+  if (data.rival_stole) {
+    $("r-emoji").textContent = "😱";
+    $("r-title").textContent = "TRALALERO STEALS!";
+    $("r-body").innerHTML = `
+      <div class="brainrot-card">
+        <div class="b-emoji">${data.rival_stole.emoji}</div>
+        <div class="b-name" style="color:var(--red)">He stole your ${data.rival_stole.name}! 💀</div>
+      </div>
+      <div class="correct-answer-box">The answer was<span style="color:var(--green)">${data.correct_answer}</span></div>`;
+  } else {
+    $("r-emoji").textContent = "❌";
+    $("r-title").textContent = "WRONG!";
+    $("r-body").innerHTML = `
+      <div class="correct-answer-box">The answer was<span style="color:var(--green)">${data.correct_answer}</span></div>`;
+  }
+
+  $("r-btn").textContent = "TRY AGAIN 🔄";
+  $("result-overlay").classList.remove("hidden");
+}
+
+function showTimeoutOverlay(data) {
+  const card = $("result-card");
+  card.className = "ov-card timeout-card";
+  $("r-emoji").textContent = "⏰";
+  $("r-title").textContent = "TOO SLOW!";
+  $("r-body").innerHTML = `
+    <div class="correct-answer-box">The answer was<span style="color:var(--gold)">${data.correct_answer}</span></div>`;
+  $("r-btn").textContent = "TRY AGAIN 🔄";
+  $("result-overlay").classList.remove("hidden");
+}
+
+function showLevelUp(level) {
+  $("new-lvl").textContent    = level;
+  $("lvl-unlock").textContent = LEVEL_UNLOCK[level] || "";
+  $("lvlup-overlay").classList.remove("hidden");
+  spawnConfetti(60);
+}
+
+// ─── COLLECTION ──────────────────────────────────────────────────────────────
+
+async function openCollection() {
+  const res   = await fetch("/api/collection");
+  const items = await res.json();
+  const grid  = $("coll-grid");
+
+  if (items.length === 0) {
+    grid.innerHTML = `<div class="empty-coll">No brainrots yet!<br>Answer math problems<br>to steal some 🦈</div>`;
+  } else {
+    grid.innerHTML = items.map(item => `
+      <div class="coll-card ${item.rarity}">
+        <div class="cc-emoji">${item.emoji}</div>
+        ${rarityBadge(item.rarity)}
+        <div class="cc-name">${item.name}</div>
+        ${item.cnt > 1 ? `<div class="cc-cnt">×${item.cnt}</div>` : ""}
+      </div>`).join("");
+  }
+
+  $("coll-modal").classList.remove("hidden");
+}
+
+function closeCollection() {
+  $("coll-modal").classList.add("hidden");
+}
+
+// ─── CONFETTI ────────────────────────────────────────────────────────────────
+
+function spawnConfetti(count) {
+  const colors = ["#e94560","#4fc3f7","#ffd700","#00e676","#ce93d8","#f39c12","#ff80ab","#80d8ff"];
+  const box    = $("confetti-box");
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "piece";
+    p.style.cssText = `
+      left:${Math.random()*100}vw;
+      top:0;
+      width:${Math.random()*10+4}px;
+      height:${Math.random()*10+4}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*1.4+0.8}s;
+      animation-delay:${Math.random()*0.4}s;
+      border-radius:${Math.random() > .5 ? "50%" : "2px"};
+    `;
+    box.appendChild(p);
+    p.addEventListener("animationend", () => p.remove());
+  }
+}
+
+// ─── FLASH ───────────────────────────────────────────────────────────────────
+
+function flashScreen(color) {
+  const f = $("flash");
+  f.style.background  = color;
+  f.style.transition  = "none";
+  f.style.opacity     = "1";
+  setTimeout(() => {
+    f.style.transition = "opacity .45s ease-out";
+    f.style.opacity    = "0";
+  }, 40);
+}
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
+
+document.querySelectorAll(".choice").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (answered) return;
+    answered = true;
+    const val = parseInt(btn.dataset.value);
+    submitAnswer(val, false);
+  });
+});
+
+$("r-btn").addEventListener("click", () => {
+  $("result-overlay").classList.add("hidden");
+  if (pendingLvlUp) {
+    const lvl = pendingLvlUp;
+    pendingLvlUp = 0;
+    showLevelUp(lvl);
+  } else {
+    loadProblem();
+  }
+});
+
+$("lvlup-btn").addEventListener("click", () => {
+  $("lvlup-overlay").classList.add("hidden");
+  loadProblem();
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+loadProblem();
+</script>
+</body>
+</html>
