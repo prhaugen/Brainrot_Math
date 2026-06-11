@@ -28,7 +28,194 @@
       user-select: none;
     }
 
-    /* ─── LAYOUT ─── */
+    .hidden { display: none !important; }
+
+    /* ─── PROFILE PICKER SCREEN ─── */
+    #picker-screen {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px 40px;
+    }
+
+    #picker-logo { font-size: 4rem; margin-bottom: 4px; }
+
+    #picker-screen h1 {
+      font-size: clamp(1.6rem, 6vw, 2.2rem);
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    #picker-screen h2 {
+      font-size: 1.2rem;
+      color: #aaa;
+      margin: 6px 0 24px;
+      letter-spacing: 1px;
+    }
+
+    #player-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 14px;
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 20px;
+    }
+
+    .player-card {
+      background: var(--card);
+      border: 3px solid #2a2a5e;
+      border-radius: 20px;
+      padding: 18px 12px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+    }
+
+    .player-card:hover {
+      border-color: var(--blue);
+      transform: translateY(-3px);
+    }
+
+    .player-card:active { transform: translateY(2px); }
+
+    .pc-avatar { font-size: 3rem; line-height: 1.2; }
+    .pc-name   { font-size: 1.2rem; margin: 8px 0 6px; }
+
+    .pc-stats {
+      font-size: .78rem;
+      color: #888;
+      line-height: 1.8;
+    }
+
+    .pc-level {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 10px;
+      padding: 1px 8px;
+      font-size: .75rem;
+      margin-bottom: 2px;
+    }
+
+    #add-player-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      padding: 16px 36px;
+      font-size: 1.3rem;
+      background: transparent;
+      border: 3px dashed #3a3a6e;
+      border-radius: 20px;
+      color: #6a6aae;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    #add-player-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* ─── NEW PLAYER SCREEN ─── */
+    #new-player-screen {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px 40px;
+    }
+
+    #new-player-inner {
+      background: var(--card);
+      border: 3px solid var(--blue);
+      border-radius: 28px;
+      padding: 28px 24px;
+      max-width: 420px;
+      width: 100%;
+    }
+
+    #new-player-inner h2 {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--blue);
+    }
+
+    .np-label {
+      font-size: .95rem;
+      color: #aaa;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    #player-name-input {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 1.4rem;
+      background: var(--bg);
+      border: 2px solid #3a3a6e;
+      border-radius: 14px;
+      color: #fff;
+      outline: none;
+      margin-bottom: 20px;
+      transition: border-color .2s;
+    }
+
+    #player-name-input:focus { border-color: var(--blue); }
+    #player-name-input::placeholder { color: #3a3a6e; }
+
+    #avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .avatar-btn {
+      font-size: 2.2rem;
+      background: var(--bg);
+      border: 3px solid #2a2a5e;
+      border-radius: 14px;
+      padding: 10px 4px;
+      cursor: pointer;
+      transition: border-color .15s, transform .1s;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .avatar-btn:hover  { border-color: #4a4a9e; transform: scale(1.08); }
+    .avatar-btn.chosen { border-color: var(--blue); background: #0a1a3a; }
+
+    #np-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    #cancel-np-btn, #confirm-np-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      flex: 1;
+      padding: 14px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+
+    #cancel-np-btn  { background: #2a2a5e; color: #aaa; }
+    #confirm-np-btn { background: var(--accent); color: #fff; box-shadow: 0 5px 0 #8b1c36; }
+
+    #np-error {
+      color: var(--red);
+      font-size: .9rem;
+      text-align: center;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    /* ─── GAME LAYOUT ─── */
     #game {
       max-width: 480px;
       margin: 0 auto;
@@ -49,20 +236,56 @@
       flex-shrink: 0;
     }
 
-    .hstat {
+    #player-badge {
+      font-family: 'Fredoka One', Arial, sans-serif;
       background: var(--bg);
+      border: 2px solid #3a3a6e;
       border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 1.25rem;
-      min-width: 70px;
-      text-align: center;
+      padding: 5px 12px;
+      font-size: 1rem;
+      color: #fff;
+      cursor: pointer;
+      transition: border-color .2s;
+      white-space: nowrap;
+      max-width: 110px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+
+    #player-badge:hover { border-color: var(--blue); }
 
     #lvl-badge {
       background: var(--accent);
       border-radius: 20px;
       padding: 6px 18px;
       font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    #pause-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      background: var(--bg);
+      border: 2px solid var(--blue);
+      color: var(--blue);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+
+    #pause-btn:hover { background: #1a2a4e; }
+
+    .hstat {
+      background: var(--bg);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 1.1rem;
+      min-width: 60px;
+      text-align: center;
+      flex-shrink: 0;
     }
 
     /* ─── RIVAL ─── */
@@ -220,22 +443,6 @@
 
     #coll-btn:hover { background: #2a2a5e; }
 
-    /* ─── PAUSE BUTTON ─── */
-    #pause-btn {
-      font-family: 'Fredoka One', Arial, sans-serif;
-      background: var(--bg);
-      border: 2px solid var(--blue);
-      color: var(--blue);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background .2s;
-      flex-shrink: 0;
-    }
-    #pause-btn:hover { background: #1a2a4e; }
-
     /* ─── PAUSE OVERLAY ─── */
     #pause-overlay {
       position: fixed;
@@ -246,7 +453,6 @@
       justify-content: center;
       z-index: 150;
     }
-    #pause-overlay.hidden { display: none; }
 
     #pause-card {
       background: var(--card);
@@ -275,6 +481,7 @@
       box-shadow: 0 6px 0 #1a7aa0;
       transition: transform .1s;
     }
+
     #resume-btn:hover  { transform: translateY(-2px); }
     #resume-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1a7aa0; }
 
@@ -297,8 +504,6 @@
       justify-content: center;
       z-index: 200;
     }
-
-    .overlay.hidden { display: none; }
 
     .ov-card {
       background: var(--card);
@@ -351,17 +556,8 @@
     .b-name { font-size: 1.1rem; margin: 4px 0 2px; }
     .b-desc { font-size: .82rem; color: #aaa; }
 
-    .correct-answer-box {
-      font-size: 1rem;
-      margin: 10px 0;
-      color: #aaa;
-    }
-
-    .correct-answer-box span {
-      font-size: 2.8rem;
-      display: block;
-      margin-top: 4px;
-    }
+    .correct-answer-box { font-size: 1rem; margin: 10px 0; color: #aaa; }
+    .correct-answer-box span { font-size: 2.8rem; display: block; margin-top: 4px; }
 
     .ov-btn {
       font-family: 'Fredoka One', Arial, sans-serif;
@@ -419,8 +615,6 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
-
-    #coll-modal.hidden { display: none; }
 
     #coll-inner {
       max-width: 560px;
@@ -511,6 +705,43 @@
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════════════════════
+     PROFILE PICKER SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="picker-screen" class="hidden">
+  <div id="picker-logo">🦈</div>
+  <h1>BRAINROT MATH HEIST</h1>
+  <h2>WHO'S PLAYING?</h2>
+  <div id="player-grid"></div>
+  <button id="add-player-btn" onclick="showNewPlayerScreen()">+ NEW PLAYER</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NEW PLAYER SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="new-player-screen" class="hidden">
+  <div id="new-player-inner">
+    <h2>NEW PLAYER 🎮</h2>
+
+    <label class="np-label">What's your name?</label>
+    <input type="text" id="player-name-input" maxlength="12" placeholder="Enter your name…" autocomplete="off">
+
+    <label class="np-label">Pick your avatar:</label>
+    <div id="avatar-grid"></div>
+
+    <div id="np-error"></div>
+
+    <div id="np-actions">
+      <button id="cancel-np-btn"  onclick="showPickerScreen()">BACK</button>
+      <button id="confirm-np-btn" onclick="createPlayer()">LET'S GO! 🎮</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GAME
+════════════════════════════════════════════════════════════ -->
+
 <!-- Screen flash -->
 <div id="flash"></div>
 
@@ -527,11 +758,11 @@
 <!-- Confetti container -->
 <div id="confetti-box"></div>
 
-<div id="game">
+<div id="game" class="hidden">
 
   <!-- HEADER -->
   <header>
-    <div class="hstat" id="streak-display">🔥 0</div>
+    <button id="player-badge" onclick="switchPlayer()">👤</button>
     <div id="lvl-badge">LVL <span id="level-display">1</span></div>
     <button id="pause-btn" onclick="togglePause()">⏸</button>
     <div class="hstat" id="count-display">💎 0</div>
@@ -599,6 +830,8 @@
 <script>
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
+const AVATARS = ['🦁','🐯','🦊','🐻','🦄','🐉','🦖','🐼','🦅','🐙','🦈','⭐'];
+
 const RIVAL_IDLE = [
   "Come on, get one WRONG! 😏",
   "Tick tock… that timer won't wait! ⏰",
@@ -630,7 +863,7 @@ const LEVEL_UNLOCK = [
   "Multiplication unlocked! ✖️",
 ];
 
-const TIMER_MS  = 10000;
+const TIMER_MS = 10000;
 const RARITY_COLORS = {
   common: "r-common", uncommon: "r-uncommon", rare: "r-rare",
   epic: "r-epic", legendary: "r-legendary"
@@ -644,7 +877,7 @@ let timerRemaining = TIMER_MS;
 let answered       = false;
 let paused         = false;
 let pendingLvlUp   = 0;
-let choiceValues   = [];
+let selectedAvatar = AVATARS[0];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -668,6 +901,119 @@ function brainrotCard(br) {
     </div>`;
 }
 
+// ─── SCREEN MANAGEMENT ───────────────────────────────────────────────────────
+
+function showPickerScreen() {
+  $("picker-screen").classList.remove("hidden");
+  $("new-player-screen").classList.add("hidden");
+  $("game").classList.add("hidden");
+  loadPlayerCards();
+}
+
+function showNewPlayerScreen() {
+  $("picker-screen").classList.add("hidden");
+  $("new-player-screen").classList.remove("hidden");
+  $("np-error").textContent = "";
+  $("player-name-input").value = "";
+  selectedAvatar = AVATARS[0];
+  buildAvatarGrid();
+  setTimeout(() => $("player-name-input").focus(), 100);
+}
+
+function showGameScreen(player) {
+  $("picker-screen").classList.add("hidden");
+  $("new-player-screen").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  $("player-badge").textContent = player.avatar + " " + player.name;
+  loadProblem();
+}
+
+// ─── PROFILE PICKER ──────────────────────────────────────────────────────────
+
+async function loadPlayerCards() {
+  const res     = await fetch("/api/players");
+  const players = await res.json();
+  const grid    = $("player-grid");
+
+  if (players.length === 0) {
+    grid.innerHTML = `<p style="color:#555;text-align:center;padding:20px 0;font-size:1rem">No players yet — add one below!</p>`;
+    return;
+  }
+
+  grid.innerHTML = players.map(p => `
+    <div class="player-card" onclick="selectPlayer(${p.id})">
+      <div class="pc-avatar">${p.avatar}</div>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-stats">
+        <span class="pc-level">LVL ${levelOf(p.correct)}</span><br>
+        💎 ${p.coll_count} brainrot${p.coll_count !== 1 ? 's' : ''}<br>
+        🔥 Best streak: ${p.best_streak}
+      </div>
+    </div>`).join("");
+}
+
+function levelOf(correct) {
+  if (correct < 5)  return 1;
+  if (correct < 15) return 2;
+  if (correct < 30) return 3;
+  if (correct < 50) return 4;
+  return 5;
+}
+
+async function selectPlayer(pid) {
+  const res    = await fetch(`/api/players/${pid}/select`, { method: "POST" });
+  const player = await res.json();
+  showGameScreen(player);
+}
+
+// ─── NEW PLAYER FORM ─────────────────────────────────────────────────────────
+
+function buildAvatarGrid() {
+  $("avatar-grid").innerHTML = AVATARS.map(a => `
+    <button class="avatar-btn ${a === selectedAvatar ? 'chosen' : ''}"
+            onclick="pickAvatar('${a}')">${a}</button>`
+  ).join("");
+}
+
+function pickAvatar(emoji) {
+  selectedAvatar = emoji;
+  document.querySelectorAll(".avatar-btn").forEach(btn => {
+    btn.classList.toggle("chosen", btn.textContent === emoji);
+  });
+}
+
+async function createPlayer() {
+  const name = $("player-name-input").value.trim();
+  if (!name) {
+    $("np-error").textContent = "Please enter a name!";
+    $("player-name-input").focus();
+    return;
+  }
+  $("np-error").textContent = "";
+  const res    = await fetch("/api/players", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ name, avatar: selectedAvatar }),
+  });
+  const player = await res.json();
+  if (player.error) {
+    $("np-error").textContent = player.error;
+    return;
+  }
+  showGameScreen(player);
+}
+
+// Allow Enter key to confirm name input
+$("player-name-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") createPlayer();
+});
+
+async function switchPlayer() {
+  stopTimer();
+  await fetch("/api/logout", { method: "POST" });
+  showPickerScreen();
+}
+
 // ─── TIMER ───────────────────────────────────────────────────────────────────
 
 function startTimer(remaining = TIMER_MS) {
@@ -688,11 +1034,7 @@ function startTimer(remaining = TIMER_MS) {
     if      (pct > .6) bar.style.background = "var(--green)";
     else if (pct > .3) bar.style.background = "var(--gold)";
     else               bar.style.background = "var(--red)";
-
-    if (left <= 0) {
-      if (!answered) onTimeout();
-      return;
-    }
+    if (left <= 0) { if (!answered) onTimeout(); return; }
     rafId = requestAnimationFrame(tick);
   }
   rafId = requestAnimationFrame(tick);
@@ -743,15 +1085,14 @@ async function loadProblem() {
   });
 
   const res  = await fetch("/api/problem", { method: "POST" });
+  if (res.status === 401) { showPickerScreen(); return; }
   const data = await res.json();
 
-  $("question").textContent       = data.question;
-  $("streak-display").textContent = "🔥 " + data.streak;
-  $("level-display").textContent  = data.level;
-  $("count-display").textContent  = "💎 " + data.coll_count;
-  $("coll-btn").textContent       = `📦 MY COLLECTION (${data.coll_count})`;
+  $("question").textContent      = data.question;
+  $("level-display").textContent = data.level;
+  $("count-display").textContent = "💎 " + data.coll_count;
+  $("coll-btn").textContent      = `📦 MY COLLECTION (${data.coll_count})`;
 
-  choiceValues = data.choices;
   document.querySelectorAll(".choice").forEach((btn, i) => {
     btn.textContent   = data.choices[i];
     btn.dataset.value = data.choices[i];
@@ -776,12 +1117,12 @@ async function submitAnswer(value, isTimeout) {
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ answer: value }),
   });
+  if (res.status === 401) { showPickerScreen(); return; }
   const data = await res.json();
 
-  $("streak-display").textContent = "🔥 " + data.streak;
-  $("level-display").textContent  = data.level;
-  $("count-display").textContent  = "💎 " + data.coll_count;
-  $("coll-btn").textContent       = `📦 MY COLLECTION (${data.coll_count})`;
+  $("level-display").textContent = data.level;
+  $("count-display").textContent = "💎 " + data.coll_count;
+  $("coll-btn").textContent      = `📦 MY COLLECTION (${data.coll_count})`;
 
   if (data.level_up) pendingLvlUp = data.level;
 
@@ -792,7 +1133,6 @@ async function submitAnswer(value, isTimeout) {
     return;
   }
 
-  // Highlight buttons
   document.querySelectorAll(".choice").forEach(btn => {
     const v = parseInt(btn.dataset.value);
     if (v === data.correct_answer) btn.classList.add("correct");
@@ -820,24 +1160,19 @@ function onTimeout() {
 // ─── OVERLAYS ────────────────────────────────────────────────────────────────
 
 function showCorrectOverlay(data) {
-  const card = $("result-card");
-  card.className = "ov-card correct-card";
-  $("r-emoji").textContent = "🎉";
-  $("r-title").textContent = "STOLEN! 🦈";
-
+  $("result-card").className = "ov-card correct-card";
+  $("r-emoji").textContent   = "🎉";
+  $("r-title").textContent   = "STOLEN! 🦈";
   $("r-body").innerHTML = data.stolen_brainrot
     ? brainrotCard(data.stolen_brainrot)
     : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>";
-
   $("r-btn").textContent = "NEXT ▶";
   $("result-overlay").classList.remove("hidden");
   spawnConfetti(36);
 }
 
 function showWrongOverlay(data) {
-  const card = $("result-card");
-  card.className = "ov-card wrong-card";
-
+  $("result-card").className = "ov-card wrong-card";
   if (data.rival_stole) {
     $("r-emoji").textContent = "😱";
     $("r-title").textContent = "TRALALERO STEALS!";
@@ -853,16 +1188,14 @@ function showWrongOverlay(data) {
     $("r-body").innerHTML = `
       <div class="correct-answer-box">The answer was<span style="color:var(--green)">${data.correct_answer}</span></div>`;
   }
-
   $("r-btn").textContent = "TRY AGAIN 🔄";
   $("result-overlay").classList.remove("hidden");
 }
 
 function showTimeoutOverlay(data) {
-  const card = $("result-card");
-  card.className = "ov-card timeout-card";
-  $("r-emoji").textContent = "⏰";
-  $("r-title").textContent = "TOO SLOW!";
+  $("result-card").className = "ov-card timeout-card";
+  $("r-emoji").textContent   = "⏰";
+  $("r-title").textContent   = "TOO SLOW!";
   $("r-body").innerHTML = `
     <div class="correct-answer-box">The answer was<span style="color:var(--gold)">${data.correct_answer}</span></div>`;
   $("r-btn").textContent = "TRY AGAIN 🔄";
@@ -882,7 +1215,6 @@ async function openCollection() {
   const res   = await fetch("/api/collection");
   const items = await res.json();
   const grid  = $("coll-grid");
-
   if (items.length === 0) {
     grid.innerHTML = `<div class="empty-coll">No brainrots yet!<br>Answer math problems<br>to steal some 🦈</div>`;
   } else {
@@ -894,13 +1226,10 @@ async function openCollection() {
         ${item.cnt > 1 ? `<div class="cc-cnt">×${item.cnt}</div>` : ""}
       </div>`).join("");
   }
-
   $("coll-modal").classList.remove("hidden");
 }
 
-function closeCollection() {
-  $("coll-modal").classList.add("hidden");
-}
+function closeCollection() { $("coll-modal").classList.add("hidden"); }
 
 // ─── CONFETTI ────────────────────────────────────────────────────────────────
 
@@ -911,15 +1240,12 @@ function spawnConfetti(count) {
     const p = document.createElement("div");
     p.className = "piece";
     p.style.cssText = `
-      left:${Math.random()*100}vw;
-      top:0;
-      width:${Math.random()*10+4}px;
-      height:${Math.random()*10+4}px;
+      left:${Math.random()*100}vw; top:0;
+      width:${Math.random()*10+4}px; height:${Math.random()*10+4}px;
       background:${colors[Math.floor(Math.random()*colors.length)]};
       animation-duration:${Math.random()*1.4+0.8}s;
       animation-delay:${Math.random()*0.4}s;
-      border-radius:${Math.random() > .5 ? "50%" : "2px"};
-    `;
+      border-radius:${Math.random() > .5 ? "50%" : "2px"};`;
     box.appendChild(p);
     p.addEventListener("animationend", () => p.remove());
   }
@@ -929,9 +1255,9 @@ function spawnConfetti(count) {
 
 function flashScreen(color) {
   const f = $("flash");
-  f.style.background  = color;
-  f.style.transition  = "none";
-  f.style.opacity     = "1";
+  f.style.background = color;
+  f.style.transition = "none";
+  f.style.opacity    = "1";
   setTimeout(() => {
     f.style.transition = "opacity .45s ease-out";
     f.style.opacity    = "0";
@@ -942,10 +1268,9 @@ function flashScreen(color) {
 
 document.querySelectorAll(".choice").forEach(btn => {
   btn.addEventListener("click", () => {
-    if (answered) return;
+    if (answered || paused) return;
     answered = true;
-    const val = parseInt(btn.dataset.value);
-    submitAnswer(val, false);
+    submitAnswer(parseInt(btn.dataset.value), false);
   });
 });
 
@@ -967,7 +1292,15 @@ $("lvlup-btn").addEventListener("click", () => {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
-loadProblem();
+(async () => {
+  const res  = await fetch("/api/me");
+  const data = await res.json();
+  if (data.player) {
+    showGameScreen(data.player);
+  } else {
+    showPickerScreen();
+  }
+})();
 </script>
 </body>
 </html>
