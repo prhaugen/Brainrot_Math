@@ -805,6 +805,16 @@
 </div><!-- #game -->
 
 
+<!-- READY OVERLAY -->
+<div id="ready-overlay" class="overlay hidden">
+  <div class="ov-card" style="border-color:var(--blue);">
+    <div id="ready-avatar" style="font-size:4.5rem;margin-bottom:8px;"></div>
+    <div class="ov-title" id="ready-title"></div>
+    <p style="color:#888;font-size:1rem;margin-bottom:20px;">Are you ready to steal some brainrots?</p>
+    <button class="ov-btn" id="ready-btn" style="background:var(--blue);box-shadow:0 6px 0 #1a7aa0;">LET'S GO! 🎮</button>
+  </div>
+</div>
+
 <!-- RESULT OVERLAY -->
 <div id="result-overlay" class="overlay hidden">
   <div class="ov-card" id="result-card">
@@ -938,7 +948,9 @@ function showGameScreen(player) {
   $("new-player-screen").classList.add("hidden");
   $("game").classList.remove("hidden");
   $("player-badge").textContent = player.avatar + " " + player.name;
-  loadProblem();
+  $("ready-avatar").textContent = player.avatar;
+  $("ready-title").textContent  = "Ready, " + player.name + "?";
+  $("ready-overlay").classList.remove("hidden");
 }
 
 // ─── PROFILE PICKER ──────────────────────────────────────────────────────────
@@ -1320,6 +1332,11 @@ $("r-btn").addEventListener("click", () => {
 
 $("lvlup-btn").addEventListener("click", () => {
   $("lvlup-overlay").classList.add("hidden");
+  loadProblem();
+});
+
+$("ready-btn").addEventListener("click", () => {
+  $("ready-overlay").classList.add("hidden");
   loadProblem();
 });
 
