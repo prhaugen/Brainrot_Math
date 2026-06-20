@@ -712,6 +712,79 @@
       0%   { transform: translateY(-30px) rotate(0deg);   opacity: 1; }
       100% { transform: translateY(105vh) rotate(800deg); opacity: 0; }
     }
+
+    /* ─── XP BAR ─── */
+    #xp-wrap {
+      background: #0d0d2a;
+      border-radius: 8px;
+      height: 10px;
+      overflow: hidden;
+      border: 1px solid #2a2a5a;
+      margin-top: 8px;
+    }
+    #xp-bar {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #9c27b0, #e91e63);
+      transition: width .5s ease-out;
+    }
+    #xp-label {
+      font-size: .72rem;
+      color: #888;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    /* ─── LEADERBOARD ─── */
+    #leaderboard {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+    }
+    #leaderboard h3 {
+      font-size: 1rem;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid #2a2a5e;
+      font-size: 1rem;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-medal  { font-size: 1.4rem; width: 28px; text-align: center; }
+    .lb-avatar { font-size: 1.6rem; }
+    .lb-name   { flex: 1; }
+    .lb-score  { color: var(--gold); font-size: .9rem; white-space: nowrap; }
+
+    /* ─── STREAK BANNER ─── */
+    #streak-banner {
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      background: linear-gradient(135deg, #880e4f, #e65100);
+      border-radius: 20px;
+      padding: 14px 28px;
+      text-align: center;
+      white-space: nowrap;
+      box-shadow: 0 6px 24px rgba(233,30,99,.55);
+      transition: top .35s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+    }
+    #streak-banner.show { top: 14px; }
+    #streak-banner .sb-num { font-size: 1.8rem; display: block; line-height: 1.2; }
+    #streak-banner .sb-txt { font-size: .95rem; color: rgba(255,255,255,.88); }
   </style>
 </head>
 <body>
@@ -723,6 +796,7 @@
   <div id="picker-logo">🦈</div>
   <h1>BRAINROT MATH HEIST</h1>
   <h2>WHO'S PLAYING?</h2>
+  <div id="leaderboard" class="hidden"></div>
   <div id="player-grid"></div>
   <button id="add-player-btn" onclick="showNewPlayerScreen()">+ NEW PLAYER</button>
 </div>
@@ -766,6 +840,12 @@
   </div>
 </div>
 
+<!-- Streak banner -->
+<div id="streak-banner">
+  <span class="sb-num" id="sb-num"></span>
+  <span class="sb-txt" id="sb-txt"></span>
+</div>
+
 <!-- Confetti container -->
 <div id="confetti-box"></div>
 
@@ -789,6 +869,8 @@
   <div id="problem-card">
     <div id="question">Loading…</div>
     <div id="timer-wrap"><div id="timer-bar"></div></div>
+    <div id="xp-wrap"><div id="xp-bar" style="width:0%"></div></div>
+    <div id="xp-label"></div>
   </div>
 
   <!-- ANSWER CHOICES -->
@@ -885,6 +967,37 @@ const LEVEL_UNLOCK = [
 ];
 
 const TIMER_MS = 15000;
+
+// ─── SOUND ENGINE ────────────────────────────────────────────────────────────
+let _ac_ = null;
+function _getAC() {
+  if (!_ac_) _ac_ = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ac_.state === 'suspended') _ac_.resume();
+  return _ac_;
+}
+function _tone(freq, dur, vol, type, delay) {
+  vol   = vol   == null ? 0.28 : vol;
+  type  = type  || 'sine';
+  delay = delay || 0;
+  try {
+    const ctx = _getAC(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = freq;
+    const t = ctx.currentTime + delay;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur);
+  } catch(e) {}
+}
+const SFX = {
+  correct() { _tone(523,.09); _tone(659,.09,0.28,'sine',.10); _tone(784,.18,0.28,'sine',.20); },
+  wrong()   { _tone(220,.15,0.22,'sawtooth'); _tone(185,.30,0.18,'sawtooth',.15); },
+  timeout() { _tone(280,.40,0.20,'sawtooth'); },
+  levelup() { [523,659,784,1047].forEach(function(f,i){ _tone(f,.14,0.30,'sine',i*.13); }); },
+  streak()  { [392,523,659,784,1047].forEach(function(f,i){ _tone(f,.11,0.28,'triangle',i*.09); }); },
+  tick()    { _tone(880,.04,0.10,'sine'); },
+};
+
 const RARITY_COLORS = {
   common: "r-common", uncommon: "r-uncommon", rare: "r-rare",
   epic: "r-epic", legendary: "r-legendary"
@@ -901,6 +1014,7 @@ let paused             = false;
 let collectionPaused   = false;
 let pendingLvlUp       = 0;
 let selectedAvatar     = AVATARS[0];
+let currentCorrect     = 0;
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -955,14 +1069,52 @@ function showGameScreen(player) {
 
 // ─── PROFILE PICKER ──────────────────────────────────────────────────────────
 
+function updateXpBar(correct) {
+  currentCorrect = correct;
+  let pct, label;
+  if      (correct < 5)  { pct = correct / 5;          label = (5  - correct) + " more → Level 2"; }
+  else if (correct < 15) { pct = (correct -  5) / 10;  label = (15 - correct) + " more → Level 3"; }
+  else if (correct < 30) { pct = (correct - 15) / 15;  label = (30 - correct) + " more → Level 4"; }
+  else if (correct < 50) { pct = (correct - 30) / 20;  label = (50 - correct) + " more → Level 5"; }
+  else                   { pct = 1;                      label = "MAX LEVEL! 🏆"; }
+  $("xp-bar").style.width   = (pct * 100) + "%";
+  $("xp-label").textContent = label;
+}
+
+function showStreakBanner(streak) {
+  const msgs = {3:"ON FIRE! 🔥", 5:"BLAZING! 🔥🔥", 10:"UNSTOPPABLE! ⚡", 15:"LEGENDARY! 👑", 20:"GODLIKE! 💀"};
+  $("sb-num").textContent = streak + " STREAK!";
+  $("sb-txt").textContent = msgs[streak] || "KEEP GOING! 🔥";
+  const b = $("streak-banner");
+  b.classList.add("show");
+  setTimeout(function(){ b.classList.remove("show"); }, 2200);
+}
+
 async function loadPlayerCards() {
   const res     = await fetch("/api/players");
   const players = await res.json();
   const grid    = $("player-grid");
+  const lb      = $("leaderboard");
 
   if (players.length === 0) {
     grid.innerHTML = `<p style="color:#555;text-align:center;padding:20px 0;font-size:1rem">No players yet — add one below!</p>`;
+    lb.classList.add("hidden");
     return;
+  }
+
+  if (players.length >= 2) {
+    const sorted = [...players].sort((a, b) => b.coll_count - a.coll_count);
+    const medals = ["🥇","🥈","🥉"];
+    lb.innerHTML = `<h3>🏆 LEADERBOARD</h3>` + sorted.slice(0, 3).map((p, i) => `
+      <div class="lb-row">
+        <span class="lb-medal">${medals[i]}</span>
+        <span class="lb-avatar">${p.avatar}</span>
+        <span class="lb-name">${p.name}</span>
+        <span class="lb-score">💎 ${p.coll_count}</span>
+      </div>`).join("");
+    lb.classList.remove("hidden");
+  } else {
+    lb.classList.add("hidden");
   }
 
   grid.innerHTML = players.map(p => `
@@ -1051,6 +1203,7 @@ function startTimer(remaining = TIMER_MS) {
     bar.style.background = "var(--green)";
   }
 
+  let lastBeepSec = -1;
   function tick(now) {
     const elapsed = now - timerStart;
     const left    = Math.max(0, timerRemaining - elapsed);
@@ -1058,7 +1211,11 @@ function startTimer(remaining = TIMER_MS) {
     bar.style.width = (pct * 100) + "%";
     if      (pct > .6) bar.style.background = "var(--green)";
     else if (pct > .3) bar.style.background = "var(--gold)";
-    else               bar.style.background = "var(--red)";
+    else {
+      bar.style.background = "var(--red)";
+      const sec = Math.ceil(left / 1000);
+      if (sec !== lastBeepSec && sec > 0) { lastBeepSec = sec; SFX.tick(); }
+    }
     if (left <= 0) { if (!answered) onTimeout(); return; }
     rafId = requestAnimationFrame(tick);
   }
@@ -1118,6 +1275,7 @@ async function loadProblem() {
   $("level-display").textContent = data.level;
   $("count-display").textContent = "💎 " + data.coll_count;
   $("coll-btn").textContent      = `📦 MY COLLECTION (${data.coll_count})`;
+  if (data.correct !== undefined) updateXpBar(data.correct);
 
   document.querySelectorAll(".choice").forEach((btn, i) => {
     btn.textContent   = data.choices[i];
@@ -1148,6 +1306,7 @@ async function submitAnswer(value, isTimeout) {
   if (res.status === 401) { showPickerScreen(); return; }
   const data = await res.json();
 
+  if (data.correct_count !== undefined) updateXpBar(data.correct_count);
   $("level-display").textContent = data.level;
   $("count-display").textContent = "💎 " + data.coll_count;
   $("coll-btn").textContent      = `📦 MY COLLECTION (${data.coll_count})`;
@@ -1155,6 +1314,7 @@ async function submitAnswer(value, isTimeout) {
   if (data.level_up) pendingLvlUp = data.level;
 
   if (isTimeout) {
+    SFX.timeout();
     flashScreen("rgba(255,215,0,.45)");
     setRival(RIVAL_WRONG);
     setTimeout(() => showTimeoutOverlay(data), 300);
@@ -1169,10 +1329,12 @@ async function submitAnswer(value, isTimeout) {
   });
 
   if (data.correct) {
+    if (data.streak_milestone) SFX.streak(); else SFX.correct();
     flashScreen("rgba(0,230,118,.4)");
     setRival(RIVAL_CORRECT);
     setTimeout(() => showCorrectOverlay(data), 500);
   } else {
+    SFX.wrong();
     flashScreen("rgba(255,23,68,.4)");
     setRival(RIVAL_WRONG);
     setTimeout(() => showWrongOverlay(data), 650);
@@ -1197,7 +1359,15 @@ function showCorrectOverlay(data) {
   $("result-card").className = "ov-card correct-card";
   $("r-emoji").textContent   = "🎉";
   $("r-title").textContent   = "STOLEN! 🦈";
-  $("r-body").innerHTML = (data.speed_tier ? speedBadge(data.speed_tier) : "")
+  let streakHtml = "";
+  if (data.streak_milestone) {
+    showStreakBanner(data.streak);
+    const smsgs = {3:"ON FIRE! 🔥", 5:"BLAZING! 🔥🔥", 10:"UNSTOPPABLE! ⚡", 15:"LEGENDARY! 👑", 20:"GODLIKE! 💀"};
+    const smsg  = smsgs[data.streak] || (data.streak + " in a row! 🔥");
+    streakHtml  = `<div style="background:#3d0a1e;border:2px solid #e91e63;border-radius:12px;padding:8px 16px;margin-bottom:8px;color:#f48fb1;font-size:1rem;">🔥 ${data.streak} STREAK! ${smsg}</div>`;
+  }
+  $("r-body").innerHTML = streakHtml
+    + (data.speed_tier ? speedBadge(data.speed_tier) : "")
     + (data.stolen_brainrot
         ? brainrotCard(data.stolen_brainrot)
         : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>");
@@ -1241,6 +1411,7 @@ function showLevelUp(level) {
   $("new-lvl").textContent    = level;
   $("lvl-unlock").textContent = LEVEL_UNLOCK[level] || "";
   $("lvlup-overlay").classList.remove("hidden");
+  SFX.levelup();
   spawnConfetti(60);
 }
 

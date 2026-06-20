@@ -287,6 +287,7 @@ def api_problem():
         "choices":    make_choices(ans),
         "level":      level,
         "streak":     stats["streak"],
+        "correct":    stats["correct"],
         "coll_count": coll_count,
     })
 
@@ -351,6 +352,8 @@ def api_answer():
         "SELECT COUNT(*) FROM collection WHERE player_id=?", (pid,)
     ).fetchone()[0]
     conn.close()
+    s = stats["streak"]
+    streak_milestone = is_correct and (s in {3, 5, 10} or (s > 10 and s % 5 == 0))
     session.pop("ans", None)
 
     return jsonify({
@@ -363,6 +366,8 @@ def api_answer():
         "level_up":        new_level > old_level,
         "coll_count":      coll_count,
         "speed_tier":      speed_tier(elapsed_ms) if is_correct else None,
+        "streak_milestone": streak_milestone,
+        "correct_count":    stats["correct"],
     })
 
 
