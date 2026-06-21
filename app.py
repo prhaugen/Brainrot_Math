@@ -11,18 +11,18 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH  = os.path.join(BASE_DIR, "brainrot.db")
 
 BRAINROTS = [
-    {"id":  1, "name": "Tralalero Tralala",        "emoji": "🦈👟", "desc": "Shark in Nike sneakers",      "rarity": "common"},
-    {"id":  2, "name": "Bombardiro Crocodilo",      "emoji": "🐊✈️", "desc": "Crocodile bomber plane",      "rarity": "common"},
-    {"id":  3, "name": "Tung Tung Tung Sahur",      "emoji": "🪵🏏", "desc": "Fearsome stick spirit",       "rarity": "common"},
-    {"id":  4, "name": "Bombombini Gusini",         "emoji": "🪿💣", "desc": "Bomb goose on a mission",     "rarity": "uncommon"},
-    {"id":  5, "name": "Frigo Camelo",              "emoji": "🐪❄️", "desc": "Fridge camel of the desert",  "rarity": "uncommon"},
-    {"id":  6, "name": "Ballerina Cappuccina",      "emoji": "☕💃", "desc": "Dancing coffee queen",        "rarity": "uncommon"},
-    {"id":  7, "name": "Cappuccino Assassino",      "emoji": "☕🗡️", "desc": "Hot and deadly",              "rarity": "rare"},
-    {"id":  8, "name": "La Vaca Saturno Saturnita", "emoji": "🐄🪐", "desc": "Cosmic dairy cow",            "rarity": "rare"},
-    {"id":  9, "name": "Lirili Larila",             "emoji": "🐘🌵", "desc": "Elephant cactus hybrid",      "rarity": "rare"},
-    {"id": 10, "name": "Il Cacto con le Braccia",   "emoji": "🌵💪", "desc": "Cactus with giant arms",      "rarity": "epic"},
-    {"id": 11, "name": "Glorbo Fragno",             "emoji": "🦷🌀", "desc": "The spinning tooth",          "rarity": "epic"},
-    {"id": 12, "name": "Brr Brr Patapim",           "emoji": "🐒⛏️", "desc": "Mining monkey maestro",       "rarity": "legendary"},
+    {"id":  1, "name": "Tralalero Tralala",        "emoji": "🦈👟", "img": "/static/characters/tralalero-tralala.webp",                                           "desc": "Shark in Nike sneakers",      "rarity": "common"},
+    {"id":  2, "name": "Bombardiro Crocodilo",      "emoji": "🐊✈️", "img": "/static/characters/bombardiro-crocodilo.webp",                                       "desc": "Crocodile bomber plane",      "rarity": "common"},
+    {"id":  3, "name": "Tung Tung Tung Sahur",      "emoji": "🪵🏏", "img": "/static/characters/tung-tung-tung-tung-tung-tung-tung-tung-tung-sahur.webp",         "desc": "Fearsome stick spirit",       "rarity": "common"},
+    {"id":  4, "name": "Bombombini Gusini",         "emoji": "🪿💣", "img": "/static/characters/bombombini-gusini.webp",                                           "desc": "Bomb goose on a mission",     "rarity": "uncommon"},
+    {"id":  5, "name": "Frigo Camelo",              "emoji": "🐪❄️", "img": "/static/characters/frigo-camelo.webp",                                               "desc": "Fridge camel of the desert",  "rarity": "uncommon"},
+    {"id":  6, "name": "Ballerina Cappuccina",      "emoji": "☕💃", "img": "/static/characters/ballerina-cappuccina.webp",                                        "desc": "Dancing coffee queen",        "rarity": "uncommon"},
+    {"id":  7, "name": "Cappuccino Assassino",      "emoji": "☕🗡️", "img": "/static/characters/cappuccino-assassino.webp",                                       "desc": "Hot and deadly",              "rarity": "rare"},
+    {"id":  8, "name": "La Vaca Saturno Saturnita", "emoji": "🐄🪐", "img": "/static/characters/la-vaca-saturno-saturnita.webp",                                   "desc": "Cosmic dairy cow",            "rarity": "rare"},
+    {"id":  9, "name": "Lirili Larila",             "emoji": "🐘🌵", "img": "/static/characters/liril-laril.webp",                                                 "desc": "Elephant cactus hybrid",      "rarity": "rare"},
+    {"id": 10, "name": "Girafa Celeste",            "emoji": "🦒🌠", "img": "/static/characters/girafa-celeste.webp",                                              "desc": "Giraffe from the cosmos",     "rarity": "epic"},
+    {"id": 11, "name": "Glorbo Fruttodrillo",       "emoji": "🐊🍉", "img": "/static/characters/glorbo-fruttodrillo.webp",                                         "desc": "The fruity crocodile lord",   "rarity": "epic"},
+    {"id": 12, "name": "Brr Brr Patapim",           "emoji": "🐒⛏️", "img": "/static/characters/brr-brr-patapim.webp",                                             "desc": "Mining monkey maestro",       "rarity": "legendary"},
 ]
 
 RARITIES = ["common", "uncommon", "rare", "epic", "legendary"]
@@ -442,6 +442,9 @@ def api_answer():
     })
 
 
+_BR_IMG = {b["name"]: b.get("img", "") for b in BRAINROTS}
+
+
 @app.route("/api/collection", methods=["GET"])
 def api_collection():
     pid = current_player_id()
@@ -461,7 +464,7 @@ def api_collection():
             ELSE 5 END
     """, (pid,)).fetchall()
     conn.close()
-    return jsonify([dict(r) for r in rows])
+    return jsonify([{**dict(r), "img": _BR_IMG.get(r["name"], "")} for r in rows])
 
 
 @app.route("/api/fuse", methods=["POST"])

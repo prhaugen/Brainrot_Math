@@ -299,9 +299,20 @@
     }
 
     #rival-emoji {
-      font-size: 3.2rem;
+      width: 96px;
+      height: 96px;
       animation: float 2.8s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.2rem;
       line-height: 1;
+    }
+    #rival-emoji img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 8px rgba(79,195,247,.4));
     }
 
     @keyframes float {
@@ -554,6 +565,7 @@
     }
 
     .b-emoji  { font-size: 3rem; line-height: 1.2; }
+    .b-img    { width: 90px; height: 90px; object-fit: contain; border-radius: 10px; display: block; margin: 0 auto 2px; }
 
     .b-rarity {
       display: inline-block;
@@ -694,6 +706,7 @@
     .coll-card.legendary { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,215,0,.35); }
 
     .cc-emoji { font-size: 2.4rem; line-height: 1.2; }
+    .cc-img   { width: 64px; height: 64px; object-fit: contain; display: block; margin: 0 auto; }
     .cc-name  { font-size: .78rem; margin-top: 6px; color: #ccc; line-height: 1.2; }
 
     .cc-cnt {
@@ -956,7 +969,7 @@
 
   <!-- RIVAL -->
   <div id="rival-area">
-    <div id="rival-emoji">🦈👟</div>
+    <div id="rival-emoji"><img src="/static/characters/tralalero-tralala.webp" alt="Tralalero Tralala" onerror="this.outerHTML='🦈👟'"></div>
     <div id="rival-bubble">I'm gonna steal ALL your brainrots! 😈</div>
   </div>
 
@@ -1145,9 +1158,12 @@ function rarityBadge(rarity) {
 }
 
 function brainrotCard(br) {
+  const visual = br.img
+    ? `<img src="${br.img}" alt="${br.name}" class="b-img" onerror="this.outerHTML='<div class=\\'b-emoji\\'>${br.emoji}</div>'">`
+    : `<div class="b-emoji">${br.emoji}</div>`;
   return `
     <div class="brainrot-card">
-      <div class="b-emoji">${br.emoji}</div>
+      ${visual}
       ${rarityBadge(br.rarity)}
       <div class="b-name">${br.name}</div>
       <div class="b-desc">${br.desc}</div>
@@ -1611,14 +1627,17 @@ async function openCollection() {
   if (items.length === 0) {
     grid.innerHTML = `<div class="empty-coll">No brainrots yet!<br>Answer math problems<br>to steal some 🦈</div>`;
   } else {
+    const rarityNext = {common:"UNCOMMON", uncommon:"RARE", rare:"EPIC", epic:"LEGENDARY"};
     grid.innerHTML = items.map(item => `
       <div class="coll-card ${item.rarity}">
-        <div class="cc-emoji">${item.emoji}</div>
+        ${item.img
+          ? `<img src="${item.img}" alt="${item.name}" class="cc-img" onerror="this.outerHTML='<div class=\\'cc-emoji\\'>${item.emoji}</div>'">`
+          : `<div class="cc-emoji">${item.emoji}</div>`}
         ${rarityBadge(item.rarity)}
         <div class="cc-name">${item.name}</div>
         ${item.cnt > 1 ? `<div class="cc-cnt">×${item.cnt}</div>` : ""}
         ${item.cnt >= 3 && item.rarity !== "legendary"
-          ? `<button class="fuse-btn" onclick="fuseItem(${JSON.stringify(item.name)})">⚗️ FUSE ×3 → ${item.rarity === "common" ? "UNCOMMON" : item.rarity === "uncommon" ? "RARE" : item.rarity === "rare" ? "EPIC" : "LEGENDARY"}</button>`
+          ? `<button class="fuse-btn" onclick="fuseItem(${JSON.stringify(item.name)})">⚗️ FUSE ×3 → ${rarityNext[item.rarity] || ""}</button>`
           : ""}
       </div>`).join("");
   }
