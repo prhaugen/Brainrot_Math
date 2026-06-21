@@ -582,6 +582,8 @@
     .r-rare      { background:#0d47a1; color:#90caf9; }
     .r-epic      { background:#4a148c; color:#ce93d8; }
     .r-legendary { background:#4d3200; color:var(--gold); box-shadow:0 0 8px rgba(255,215,0,.4); }
+    .r-mythic    { background:#3d002a; color:#ff80cb; box-shadow:0 0 12px rgba(255,20,147,.5); }
+    .r-god       { background:#0a0a2e; color:#fff; box-shadow:0 0 14px rgba(255,255,255,.55),0 0 4px #ffd700; }
 
     .b-name { font-size: 1.1rem; margin: 4px 0 2px; }
     .b-desc { font-size: .82rem; color: #aaa; }
@@ -704,6 +706,8 @@
     .coll-card.rare      { border-color: #2196f3; }
     .coll-card.epic      { border-color: #9c27b0; }
     .coll-card.legendary { border-color: var(--gold); box-shadow: 0 0 14px rgba(255,215,0,.35); }
+    .coll-card.mythic    { border-color: #ff1493; box-shadow: 0 0 18px rgba(255,20,147,.45); }
+    .coll-card.god       { border-color: #fff; box-shadow: 0 0 22px rgba(255,255,255,.5), 0 0 8px #ffd700; }
 
     .cc-emoji { font-size: 2.4rem; line-height: 1.2; }
     .cc-img   { width: 64px; height: 64px; object-fit: contain; display: block; margin: 0 auto; }
@@ -1121,7 +1125,7 @@ const SFX = {
 
 const RARITY_COLORS = {
   common: "r-common", uncommon: "r-uncommon", rare: "r-rare",
-  epic: "r-epic", legendary: "r-legendary"
+  epic: "r-epic", legendary: "r-legendary", mythic: "r-mythic", god: "r-god"
 };
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -1627,7 +1631,7 @@ async function openCollection() {
   if (items.length === 0) {
     grid.innerHTML = `<div class="empty-coll">No brainrots yet!<br>Answer math problems<br>to steal some 🦈</div>`;
   } else {
-    const rarityNext = {common:"UNCOMMON", uncommon:"RARE", rare:"EPIC", epic:"LEGENDARY"};
+    const rarityNext = {common:"UNCOMMON", uncommon:"RARE", rare:"EPIC", epic:"LEGENDARY", legendary:"MYTHIC", mythic:"GOD"};
     grid.innerHTML = items.map(item => `
       <div class="coll-card ${item.rarity}">
         ${item.img
@@ -1636,7 +1640,7 @@ async function openCollection() {
         ${rarityBadge(item.rarity)}
         <div class="cc-name">${item.name}</div>
         ${item.cnt > 1 ? `<div class="cc-cnt">×${item.cnt}</div>` : ""}
-        ${item.cnt >= 3 && item.rarity !== "legendary"
+        ${item.cnt >= 3 && item.rarity !== "god"
           ? `<button class="fuse-btn" onclick="fuseItem(${JSON.stringify(item.name)})">⚗️ FUSE ×3 → ${rarityNext[item.rarity] || ""}</button>`
           : ""}
       </div>`).join("");
