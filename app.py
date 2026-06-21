@@ -11,18 +11,33 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH  = os.path.join(BASE_DIR, "brainrot.db")
 
 BRAINROTS = [
-    {"id":  1, "name": "Tralalero Tralala",        "emoji": "🦈👟", "img": "/static/characters/tralalero-tralala.webp",                                           "desc": "Shark in Nike sneakers",      "rarity": "common"},
-    {"id":  2, "name": "Bombardiro Crocodilo",      "emoji": "🐊✈️", "img": "/static/characters/bombardiro-crocodilo.webp",                                       "desc": "Crocodile bomber plane",      "rarity": "common"},
-    {"id":  3, "name": "Tung Tung Tung Sahur",      "emoji": "🪵🏏", "img": "/static/characters/tung-tung-tung-tung-tung-tung-tung-tung-tung-sahur.webp",         "desc": "Fearsome stick spirit",       "rarity": "common"},
-    {"id":  4, "name": "Bombombini Gusini",         "emoji": "🪿💣", "img": "/static/characters/bombombini-gusini.webp",                                           "desc": "Bomb goose on a mission",     "rarity": "uncommon"},
-    {"id":  5, "name": "Frigo Camelo",              "emoji": "🐪❄️", "img": "/static/characters/frigo-camelo.webp",                                               "desc": "Fridge camel of the desert",  "rarity": "uncommon"},
-    {"id":  6, "name": "Ballerina Cappuccina",      "emoji": "☕💃", "img": "/static/characters/ballerina-cappuccina.webp",                                        "desc": "Dancing coffee queen",        "rarity": "uncommon"},
-    {"id":  7, "name": "Cappuccino Assassino",      "emoji": "☕🗡️", "img": "/static/characters/cappuccino-assassino.webp",                                       "desc": "Hot and deadly",              "rarity": "rare"},
-    {"id":  8, "name": "La Vaca Saturno Saturnita", "emoji": "🐄🪐", "img": "/static/characters/la-vaca-saturno-saturnita.webp",                                   "desc": "Cosmic dairy cow",            "rarity": "rare"},
-    {"id":  9, "name": "Lirili Larila",             "emoji": "🐘🌵", "img": "/static/characters/liril-laril.webp",                                                 "desc": "Elephant cactus hybrid",      "rarity": "rare"},
-    {"id": 10, "name": "Girafa Celeste",            "emoji": "🦒🌠", "img": "/static/characters/girafa-celeste.webp",                                              "desc": "Giraffe from the cosmos",     "rarity": "epic"},
-    {"id": 11, "name": "Glorbo Fruttodrillo",       "emoji": "🐊🍉", "img": "/static/characters/glorbo-fruttodrillo.webp",                                         "desc": "The fruity crocodile lord",   "rarity": "epic"},
-    {"id": 12, "name": "Brr Brr Patapim",           "emoji": "🐒⛏️", "img": "/static/characters/brr-brr-patapim.webp",                                             "desc": "Mining monkey maestro",       "rarity": "legendary"},
+    # ── common ───────────────────────────────────────────────────────────────
+    {"id":  1, "name": "Tralalero Tralala",              "emoji": "🦈👟", "img": "/static/characters/tralalero-tralala.webp",                   "desc": "Shark in Nike sneakers",        "rarity": "common"},
+    {"id":  2, "name": "Bombardiro Crocodilo",            "emoji": "🐊✈️", "img": "/static/characters/bombardiro-crocodilo.webp",               "desc": "Crocodile bomber plane",        "rarity": "common"},
+    {"id":  3, "name": "Tung Tung Tung Sahur",           "emoji": "🪵🏏", "img": "/static/characters/tung-tung-tung-tung-tung-tung-tung-tung-tung-sahur.webp", "desc": "Fearsome stick spirit",   "rarity": "common"},
+    {"id": 13, "name": "Frulli Frulla",                  "emoji": "🍓🌀", "img": "/static/characters/frulli-frulla.webp",                       "desc": "Fruity chaos incarnate",        "rarity": "common"},
+    {"id": 14, "name": "Bobrelli Bananelli",             "emoji": "🦫🍌", "img": "/static/characters/bobrelli-bananelli.webp",                  "desc": "The banana beaver",             "rarity": "common"},
+    # ── uncommon ─────────────────────────────────────────────────────────────
+    {"id":  4, "name": "Bombombini Gusini",              "emoji": "🪿💣", "img": "/static/characters/bombombini-gusini.webp",                   "desc": "Bomb goose on a mission",       "rarity": "uncommon"},
+    {"id":  5, "name": "Frigo Camelo",                   "emoji": "🐪❄️", "img": "/static/characters/frigo-camelo.webp",                       "desc": "Fridge camel of the desert",    "rarity": "uncommon"},
+    {"id":  6, "name": "Ballerina Cappuccina",           "emoji": "☕💃", "img": "/static/characters/ballerina-cappuccina.webp",                "desc": "Dancing coffee queen",          "rarity": "uncommon"},
+    {"id": 15, "name": "Boneca Ambalabu",                "emoji": "🐸🪆", "img": "/static/characters/boneca-ambalabu.webp",                     "desc": "The possessed frog doll",       "rarity": "uncommon"},
+    # ── rare ─────────────────────────────────────────────────────────────────
+    {"id":  7, "name": "Cappuccino Assassino",           "emoji": "☕🗡️", "img": "/static/characters/cappuccino-assassino.webp",               "desc": "Hot and deadly",                "rarity": "rare"},
+    {"id":  8, "name": "La Vaca Saturno Saturnita",      "emoji": "🐄🪐", "img": "/static/characters/la-vaca-saturno-saturnita.webp",           "desc": "Cosmic dairy cow",              "rarity": "rare"},
+    {"id":  9, "name": "Lirili Larila",                  "emoji": "🐘🌵", "img": "/static/characters/liril-laril.webp",                         "desc": "Elephant cactus hybrid",        "rarity": "rare"},
+    {"id": 16, "name": "Trippi Troppi",                  "emoji": "🌴🦜", "img": "/static/characters/trippi-troppi.webp",                       "desc": "Wild tropical trickster",       "rarity": "rare"},
+    {"id": 17, "name": "Bobrito Bandito",                "emoji": "🤠💰", "img": "/static/characters/bobrito-bandito.webp",                     "desc": "The tiny bandit",               "rarity": "rare"},
+    # ── epic ─────────────────────────────────────────────────────────────────
+    {"id": 10, "name": "Girafa Celeste",                 "emoji": "🦒🌠", "img": "/static/characters/girafa-celeste.webp",                      "desc": "Giraffe from the cosmos",       "rarity": "epic"},
+    {"id": 11, "name": "Glorbo Fruttodrillo",            "emoji": "🐊🍉", "img": "/static/characters/glorbo-fruttodrillo.webp",                 "desc": "The fruity crocodile lord",     "rarity": "epic"},
+    {"id": 18, "name": "Penguino Cocosino",              "emoji": "🐧🥥", "img": "/static/characters/penguino-cocosino.webp",                   "desc": "Coconut penguin warrior",       "rarity": "epic"},
+    {"id": 19, "name": "Brri Brri Bicus Dicus Bombicus", "emoji": "💣🔥", "img": "/static/characters/brri-brri-bicus-dicus-bombicus.webp",      "desc": "The ultimate triple threat",    "rarity": "epic"},
+    # ── legendary ────────────────────────────────────────────────────────────
+    {"id": 12, "name": "Brr Brr Patapim",                "emoji": "🐒⛏️", "img": "/static/characters/brr-brr-patapim.webp",                    "desc": "Mining monkey maestro",         "rarity": "legendary"},
+    {"id": 20, "name": "Burbaloni Lulilolli",             "emoji": "🫧🎪", "img": "/static/characters/burbaloni-lulilolli.webp",                 "desc": "The bubble circus giant",       "rarity": "legendary"},
+    {"id": 21, "name": "Blueberrinni Octopussini",        "emoji": "🫐🐙", "img": "/static/characters/blueberrinni-octopussini.webp",            "desc": "The blueberry octopus",         "rarity": "legendary"},
+    {"id": 22, "name": "Chimpanzini Bananini",            "emoji": "🦍🍌", "img": "/static/characters/chimpanzini-bananini.webp",                "desc": "The ultimate banana chimp",     "rarity": "legendary"},
 ]
 
 RARITIES = ["common", "uncommon", "rare", "epic", "legendary"]
