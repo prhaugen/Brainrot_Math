@@ -424,6 +424,24 @@
       80%     { transform: translateX(9px); }
     }
 
+    @keyframes rivalCry {
+      0%   { transform: scale(1)    rotate(0deg);   }
+      25%  { transform: scale(0.72) rotate(-14deg); }
+      50%  { transform: scale(0.72) rotate(14deg);  }
+      75%  { transform: scale(0.88) rotate(-7deg);  }
+      100% { transform: scale(1)    rotate(0deg);   }
+    }
+    @keyframes rivalCelebrate {
+      0%   { transform: scale(1)    translateY(0);    }
+      20%  { transform: scale(1.38) translateY(-15px); }
+      45%  { transform: scale(1.18) translateY(-7px);  }
+      65%  { transform: scale(1.35) translateY(-13px); }
+      85%  { transform: scale(1.22) translateY(-5px);  }
+      100% { transform: scale(1)    translateY(0);    }
+    }
+    .rival-cry       { animation: rivalCry       0.65s ease-out forwards !important; }
+    .rival-celebrate { animation: rivalCelebrate  0.85s ease-out forwards !important; }
+
     /* ─── COLLECTION BUTTON ─── */
     #coll-btn {
       font-family: 'Fredoka One', Arial, sans-serif;
@@ -785,6 +803,83 @@
     #streak-banner.show { top: 14px; }
     #streak-banner .sb-num { font-size: 1.8rem; display: block; line-height: 1.2; }
     #streak-banner .sb-txt { font-size: .95rem; color: rgba(255,255,255,.88); }
+
+    /* ─── BONUS ROUND ─── */
+    #problem-card.bonus-mode {
+      border-color: var(--gold);
+      box-shadow: 0 0 32px rgba(255,215,0,.55);
+      animation: bonusPulse 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes bonusPulse {
+      from { box-shadow: 0 0 20px rgba(255,215,0,.4); }
+      to   { box-shadow: 0 0 44px rgba(255,215,0,.8); }
+    }
+    #bonus-label {
+      font-size: .85rem;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* ─── BOSS ROUND ─── */
+    #problem-card.boss-mode {
+      border-color: var(--red);
+      box-shadow: 0 0 32px rgba(255,23,68,.55);
+      animation: bossPulse 0.85s ease-in-out infinite alternate;
+    }
+    @keyframes bossPulse {
+      from { box-shadow: 0 0 20px rgba(255,23,68,.4); }
+      to   { box-shadow: 0 0 44px rgba(255,23,68,.85); }
+    }
+    #boss-counter {
+      font-size: .88rem;
+      color: var(--red);
+      text-align: center;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .boss-pip {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      border: 2px solid var(--red);
+      margin: 0 3px;
+      vertical-align: middle;
+    }
+    .boss-pip.filled { background: var(--red); }
+
+    /* ─── BOSS WIN OVERLAY ─── */
+    #boss-win-card {
+      background: linear-gradient(135deg, #1a0505, #3d0000);
+      border: 4px solid var(--red);
+      border-radius: 28px;
+      padding: 32px 22px;
+      text-align: center;
+      max-width: 340px;
+      width: 92%;
+      box-shadow: 0 0 52px rgba(255,23,68,.55);
+      animation: popIn .4s ease-out;
+    }
+    #boss-win-card .bw-title { font-size: 2.2rem; color: var(--red); margin: 8px 0 4px; }
+    #boss-win-card .bw-sub   { font-size: 1rem; color: #ccc; margin-bottom: 12px; }
+
+    /* ─── FUSE BUTTON ─── */
+    .fuse-btn {
+      font-family: 'Fredoka One', Arial, sans-serif;
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 6px 0;
+      font-size: .78rem;
+      background: linear-gradient(135deg, #4a148c, #880e4f);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+    .fuse-btn:active { opacity: .8; }
   </style>
 </head>
 <body>
@@ -867,6 +962,8 @@
 
   <!-- PROBLEM CARD -->
   <div id="problem-card">
+    <div id="bonus-label" class="hidden">⭐ BONUS ROUND — DOUBLE STEAL!</div>
+    <div id="boss-counter" class="hidden"></div>
     <div id="question">Loading…</div>
     <div id="timer-wrap"><div id="timer-bar"></div></div>
     <div id="xp-wrap"><div id="xp-bar" style="width:0%"></div></div>
@@ -915,6 +1012,17 @@
     <p>You reached <strong>Level <span id="new-lvl"></span></strong>!</p>
     <p id="lvl-unlock" style="color:var(--green);margin-top:6px;"></p>
     <button id="lvlup-btn">LET'S GO! 🔥</button>
+  </div>
+</div>
+
+<!-- BOSS WIN OVERLAY -->
+<div id="boss-overlay" class="overlay hidden">
+  <div id="boss-win-card">
+    <div style="font-size:3.5rem">💥</div>
+    <div class="bw-title">BOSS DEFEATED!</div>
+    <div class="bw-sub">You answered all 3! Here's your reward:</div>
+    <div id="boss-reward"></div>
+    <button class="ov-btn" id="boss-btn" style="background:var(--red);box-shadow:0 6px 0 #7a0000;margin-top:16px;">EPIC! NEXT ▶</button>
   </div>
 </div>
 
@@ -1022,6 +1130,14 @@ const $ = id => document.getElementById(id);
 
 function setRival(messages) {
   $("rival-bubble").textContent = messages[Math.floor(Math.random() * messages.length)];
+}
+
+function animateRival(type) {
+  const el = $("rival-emoji");
+  el.classList.remove("rival-cry", "rival-celebrate");
+  void el.offsetWidth;
+  el.classList.add(type === "cry" ? "rival-cry" : "rival-celebrate");
+  setTimeout(function(){ el.classList.remove("rival-cry", "rival-celebrate"); }, 1000);
 }
 
 function rarityBadge(rarity) {
@@ -1277,12 +1393,41 @@ async function loadProblem() {
   $("coll-btn").textContent      = `📦 MY COLLECTION (${data.coll_count})`;
   if (data.correct !== undefined) updateXpBar(data.correct);
 
+  const pc = $("problem-card");
+  const bl = $("bonus-label");
+  const bc = $("boss-counter");
+  pc.classList.remove("bonus-mode", "boss-mode");
+  bl.classList.add("hidden");
+  bc.classList.add("hidden");
+
+  if (data.is_bonus) {
+    pc.classList.add("bonus-mode");
+    bl.classList.remove("hidden");
+    $("rival-bubble").textContent = "BONUS ROUND! Get this right for DOUBLE STEAL! 🤑";
+  } else if (data.boss_question > 0) {
+    pc.classList.add("boss-mode");
+    const done = data.boss_question - 1;
+    let pips = "";
+    for (let i = 0; i < 3; i++) pips += `<span class="boss-pip${i < done ? " filled" : ""}"></span>`;
+    bc.innerHTML = `⚔️ BOSS BATTLE — QUESTION ${data.boss_question}/3 ${pips}`;
+    bc.classList.remove("hidden");
+    if (data.boss_question === 1) {
+      $("sb-num").textContent = "⚔️ BOSS BATTLE!";
+      $("sb-txt").textContent = "Answer 3 in a row for LEGENDARY!";
+      const b = $("streak-banner");
+      b.classList.add("show");
+      setTimeout(function(){ b.classList.remove("show"); }, 2500);
+    }
+    $("rival-bubble").textContent = "3 in a row wins a LEGENDARY! Think you can do it? 😈";
+  } else {
+    setRival(RIVAL_IDLE);
+  }
+
   document.querySelectorAll(".choice").forEach((btn, i) => {
     btn.textContent   = data.choices[i];
     btn.dataset.value = data.choices[i];
   });
 
-  setRival(RIVAL_IDLE);
   problemStartTime = performance.now();
   startTimer();
 }
@@ -1315,6 +1460,7 @@ async function submitAnswer(value, isTimeout) {
 
   if (isTimeout) {
     SFX.timeout();
+    animateRival("celebrate");
     flashScreen("rgba(255,215,0,.45)");
     setRival(RIVAL_WRONG);
     setTimeout(() => showTimeoutOverlay(data), 300);
@@ -1330,11 +1476,20 @@ async function submitAnswer(value, isTimeout) {
 
   if (data.correct) {
     if (data.streak_milestone) SFX.streak(); else SFX.correct();
+    animateRival("cry");
     flashScreen("rgba(0,230,118,.4)");
     setRival(RIVAL_CORRECT);
-    setTimeout(() => showCorrectOverlay(data), 500);
+    if (data.boss_won) {
+      SFX.levelup();
+      setTimeout(() => showBossWinOverlay(data), 500);
+    } else if (data.boss_q > 0) {
+      setTimeout(() => showBossProgressOverlay(data), 500);
+    } else {
+      setTimeout(() => showCorrectOverlay(data), 500);
+    }
   } else {
     SFX.wrong();
+    animateRival("celebrate");
     flashScreen("rgba(255,23,68,.4)");
     setRival(RIVAL_WRONG);
     setTimeout(() => showWrongOverlay(data), 650);
@@ -1356,9 +1511,11 @@ function speedBadge(tier) {
 }
 
 function showCorrectOverlay(data) {
-  $("result-card").className = "ov-card correct-card";
-  $("r-emoji").textContent   = "🎉";
-  $("r-title").textContent   = "STOLEN! 🦈";
+  const rc = $("result-card");
+  rc.className = "ov-card correct-card";
+  rc.style.borderColor = "";
+  $("r-emoji").textContent = "🎉";
+  $("r-title").textContent = "STOLEN! 🦈";
   let streakHtml = "";
   if (data.streak_milestone) {
     showStreakBanner(data.streak);
@@ -1366,18 +1523,21 @@ function showCorrectOverlay(data) {
     const smsg  = smsgs[data.streak] || (data.streak + " in a row! 🔥");
     streakHtml  = `<div style="background:#3d0a1e;border:2px solid #e91e63;border-radius:12px;padding:8px 16px;margin-bottom:8px;color:#f48fb1;font-size:1rem;">🔥 ${data.streak} STREAK! ${smsg}</div>`;
   }
-  $("r-body").innerHTML = streakHtml
-    + (data.speed_tier ? speedBadge(data.speed_tier) : "")
-    + (data.stolen_brainrot
-        ? brainrotCard(data.stolen_brainrot)
-        : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>");
+  const brHtml = data.stolen_brainrot
+    ? brainrotCard(data.stolen_brainrot)
+      + (data.stolen_brainrot2
+          ? `<div style="font-size:.8rem;color:var(--gold);margin:4px 0 0">⭐ BONUS STEAL!</div>` + brainrotCard(data.stolen_brainrot2)
+          : "")
+    : "<p style='color:#888;padding:10px 0'>Nothing new this time…</p>";
+  $("r-body").innerHTML = streakHtml + (data.speed_tier ? speedBadge(data.speed_tier) : "") + brHtml;
   $("r-btn").textContent = "NEXT ▶";
   $("result-overlay").classList.remove("hidden");
-  spawnConfetti(data.speed_tier === "lightning" ? 60 : 36);
+  spawnConfetti(data.stolen_brainrot2 ? 80 : data.speed_tier === "lightning" ? 60 : 36);
 }
 
 function showWrongOverlay(data) {
   $("result-card").className = "ov-card wrong-card";
+  $("result-card").style.borderColor = "";
   if (data.rival_stole) {
     $("r-emoji").textContent = "😱";
     $("r-title").textContent = "TRALALERO STEALS!";
@@ -1399,12 +1559,35 @@ function showWrongOverlay(data) {
 
 function showTimeoutOverlay(data) {
   $("result-card").className = "ov-card timeout-card";
+  $("result-card").style.borderColor = "";
   $("r-emoji").textContent   = "⏰";
   $("r-title").textContent   = "TOO SLOW!";
   $("r-body").innerHTML = `
     <div class="correct-answer-box">The answer was<span style="color:var(--gold)">${data.correct_answer}</span></div>`;
   $("r-btn").textContent = "TRY AGAIN 🔄";
   $("result-overlay").classList.remove("hidden");
+}
+
+function showBossProgressOverlay(data) {
+  const remaining = 3 - data.boss_q;
+  const rc = $("result-card");
+  rc.className = "ov-card";
+  rc.style.borderColor = "var(--red)";
+  $("r-emoji").textContent = "⚔️";
+  $("r-title").textContent = remaining === 1 ? "ALMOST THERE! 🔥" : `${remaining} MORE TO GO!`;
+  $("r-body").innerHTML    = `<p style="color:#ccc;font-size:1rem;padding:8px 0">${
+    remaining === 1
+      ? "ONE more correct answer defeats the boss!"
+      : `Answer <strong>${remaining}</strong> more in a row to win!`
+  }</p>`;
+  $("r-btn").textContent = "KEEP GOING ▶";
+  $("result-overlay").classList.remove("hidden");
+}
+
+function showBossWinOverlay(data) {
+  $("boss-reward").innerHTML = data.boss_bonus ? brainrotCard(data.boss_bonus) : "";
+  $("boss-overlay").classList.remove("hidden");
+  spawnConfetti(100);
 }
 
 function showLevelUp(level) {
@@ -1434,6 +1617,9 @@ async function openCollection() {
         ${rarityBadge(item.rarity)}
         <div class="cc-name">${item.name}</div>
         ${item.cnt > 1 ? `<div class="cc-cnt">×${item.cnt}</div>` : ""}
+        ${item.cnt >= 3 && item.rarity !== "legendary"
+          ? `<button class="fuse-btn" onclick="fuseItem(${JSON.stringify(item.name)})">⚗️ FUSE ×3 → ${item.rarity === "common" ? "UNCOMMON" : item.rarity === "uncommon" ? "RARE" : item.rarity === "rare" ? "EPIC" : "LEGENDARY"}</button>`
+          : ""}
       </div>`).join("");
   }
   $("coll-modal").classList.remove("hidden");
@@ -1445,6 +1631,29 @@ function closeCollection() {
     collectionPaused = false;
     startTimer(timerRemaining);
   }
+}
+
+async function fuseItem(name) {
+  const res  = await fetch("/api/fuse", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ name }),
+  });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  $("count-display").textContent = "💎 " + data.coll_count;
+  $("coll-btn").textContent      = `📦 MY COLLECTION (${data.coll_count})`;
+  closeCollection();
+  const rc = $("result-card");
+  rc.className         = "ov-card";
+  rc.style.borderColor = "#9c27b0";
+  $("r-emoji").textContent = "⚗️";
+  $("r-title").textContent = "FUSED!";
+  $("r-body").innerHTML    = `<p style="color:#ccc;font-size:.9rem;margin-bottom:8px">3 combined into a higher rarity!</p>` + brainrotCard(data.fused);
+  $("r-btn").textContent   = "SWEET! ▶";
+  $("result-overlay").classList.remove("hidden");
+  SFX.levelup();
+  spawnConfetti(50);
 }
 
 // ─── CONFETTI ────────────────────────────────────────────────────────────────
@@ -1504,6 +1713,17 @@ $("r-btn").addEventListener("click", () => {
 $("lvlup-btn").addEventListener("click", () => {
   $("lvlup-overlay").classList.add("hidden");
   loadProblem();
+});
+
+$("boss-btn").addEventListener("click", () => {
+  $("boss-overlay").classList.add("hidden");
+  if (pendingLvlUp) {
+    const lvl = pendingLvlUp;
+    pendingLvlUp = 0;
+    showLevelUp(lvl);
+  } else {
+    loadProblem();
+  }
 });
 
 $("ready-btn").addEventListener("click", () => {

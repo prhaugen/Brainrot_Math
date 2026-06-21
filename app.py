@@ -175,6 +175,17 @@ def pick_brainrot(level, elapsed_ms=15000):
     return dict(random.choice(pool))
 
 
+def pick_by_rarity(rarity):
+    pool = [b for b in BRAINROTS if b["rarity"] == rarity] or [BRAINROTS[0]]
+    return dict(random.choice(pool))
+
+
+RARITY_UP = {
+    "common": "uncommon", "uncommon": "rare",
+    "rare": "epic", "epic": "legendary", "legendary": "legendary",
+}
+
+
 # ─── ROUTES ──────────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -282,13 +293,27 @@ def api_problem():
     q, ans = make_problem(level)
     session["ans"] = ans
 
+    boss_q   = session.get("boss_q", 0)
+    is_bonus = False
+    if boss_q == 0:
+        bonus_left = session.get("bonus_left", random.randint(5, 7))
+        bonus_left -= 1
+        if bonus_left <= 0:
+            is_bonus = True
+            session["bonus_left"] = random.randint(5, 7)
+        else:
+            session["bonus_left"] = bonus_left
+    session["is_bonus"] = is_bonus
+
     return jsonify({
-        "question":   q + " = ?",
-        "choices":    make_choices(ans),
-        "level":      level,
-        "streak":     stats["streak"],
-        "correct":    stats["correct"],
-        "coll_count": coll_count,
+        "question":      q + " = ?",
+        "choices":       make_choices(ans),
+        "level":         level,
+        "streak":        stats["streak"],
+        "correct":       stats["correct"],
+        "coll_count":    coll_count,
+        "is_bonus":      is_bonus,
+        "boss_question": boss_q,
     })
 
 
@@ -305,42 +330,84 @@ def api_answer():
     if correct_ans is None:
         return jsonify({"error": "no active problem"}), 400
 
+    is_bonus = session.pop("is_bonus", False)
+    boss_q   = session.get("boss_q", 0)
+
     conn      = get_db()
     stats     = dict(conn.execute(
         "SELECT * FROM stats WHERE player_id=?", (pid,)
     ).fetchone())
     old_level = level_of(stats["correct"])
 
-    is_correct      = (chosen == correct_ans)
-    stolen_brainrot = None
-    rival_stole     = None
+    is_correct       = (chosen == correct_ans)
+    stolen_brainrot  = None
+    stolen_brainrot2 = None
+    rival_stole      = None
+    boss_won         = False
+    boss_bonus       = None
 
     if is_correct:
-        stats["correct"]     += 1
-        stats["streak"]      += 1
-        stats["best_streak"]  = max(stats["best_streak"], stats["streak"])
-        br = pick_brainrot(old_level, elapsed_ms)
-        conn.execute(
-            "INSERT INTO collection (player_id, brainrot_id, name, emoji, rarity) VALUES (?,?,?,?,?)",
-            (pid, br["id"], br["name"], br["emoji"], br["rarity"])
-        )
-        stolen_brainrot = br
+        stats["correct"]    += 1
+        stats["streak"]     += 1
+        stats["best_streak"] = max(stats["best_streak"], stats["streak"])
+
+        if boss_q > 0:
+            if boss_q >= 3:
+                boss_won = True
+                session["boss_q"] = 0
+                rarity     = "legendary" if random.random() < 0.4 else "epic"
+                boss_bonus = pick_by_rarity(rarity)
+                conn.execute(
+                    "INSERT INTO collection (player_id, brainrot_id, name, emoji, rarity) VALUES (?,?,?,?,?)",
+                    (pid, boss_bonus["id"], boss_bonus["name"], boss_bonus["emoji"], boss_bonus["rarity"])
+                )
+            else:
+                session["boss_q"] = boss_q + 1
+        else:
+            br = pick_brainrot(old_level, elapsed_ms)
+            if is_bonus and br["rarity"] in ("common", "uncommon"):
+                br = pick_by_rarity("rare")
+            conn.execute(
+                "INSERT INTO collection (player_id, brainrot_id, name, emoji, rarity) VALUES (?,?,?,?,?)",
+                (pid, br["id"], br["name"], br["emoji"], br["rarity"])
+            )
+            stolen_brainrot = br
+            if is_bonus:
+                br2 = pick_brainrot(old_level, elapsed_ms)
+                conn.execute(
+                    "INSERT INTO collection (player_id, brainrot_id, name, emoji, rarity) VALUES (?,?,?,?,?)",
+                    (pid, br2["id"], br2["name"], br2["emoji"], br2["rarity"])
+                )
+                stolen_brainrot2 = br2
+            if stats["correct"] % 10 == 0 and session.get("boss_q", 0) == 0:
+                session["boss_q"] = 1
     else:
-        stats["wrong"]  += 1
-        stats["streak"]  = 0
-        victims = conn.execute(
-            "SELECT COUNT(*) FROM collection "
-            "WHERE player_id=? AND rarity IN ('common','uncommon')", (pid,)
-        ).fetchone()[0]
-        if victims > 0 and random.random() < 0.30:
+        stats["wrong"] += 1
+        stats["streak"] = 0
+        if boss_q > 0:
+            session["boss_q"] = 0
             victim = conn.execute(
                 "SELECT id, name, emoji FROM collection "
-                "WHERE player_id=? AND rarity IN ('common','uncommon') "
+                "WHERE player_id=? AND rarity IN ('common','uncommon','rare') "
                 "ORDER BY RANDOM() LIMIT 1", (pid,)
             ).fetchone()
             if victim:
                 conn.execute("DELETE FROM collection WHERE id=?", (victim[0],))
                 rival_stole = {"name": victim[1], "emoji": victim[2]}
+        else:
+            victims = conn.execute(
+                "SELECT COUNT(*) FROM collection "
+                "WHERE player_id=? AND rarity IN ('common','uncommon')", (pid,)
+            ).fetchone()[0]
+            if victims > 0 and random.random() < 0.30:
+                victim = conn.execute(
+                    "SELECT id, name, emoji FROM collection "
+                    "WHERE player_id=? AND rarity IN ('common','uncommon') "
+                    "ORDER BY RANDOM() LIMIT 1", (pid,)
+                ).fetchone()
+                if victim:
+                    conn.execute("DELETE FROM collection WHERE id=?", (victim[0],))
+                    rival_stole = {"name": victim[1], "emoji": victim[2]}
 
     new_level = level_of(stats["correct"])
     conn.execute(
@@ -357,17 +424,21 @@ def api_answer():
     session.pop("ans", None)
 
     return jsonify({
-        "correct":         is_correct,
-        "correct_answer":  correct_ans,
-        "stolen_brainrot": stolen_brainrot,
-        "rival_stole":     rival_stole,
-        "streak":          stats["streak"],
-        "level":           new_level,
-        "level_up":        new_level > old_level,
-        "coll_count":      coll_count,
-        "speed_tier":      speed_tier(elapsed_ms) if is_correct else None,
+        "correct":          is_correct,
+        "correct_answer":   correct_ans,
+        "stolen_brainrot":  stolen_brainrot,
+        "stolen_brainrot2": stolen_brainrot2,
+        "rival_stole":      rival_stole,
+        "streak":           stats["streak"],
+        "level":            new_level,
+        "level_up":         new_level > old_level,
+        "coll_count":       coll_count,
+        "speed_tier":       speed_tier(elapsed_ms) if is_correct else None,
         "streak_milestone": streak_milestone,
         "correct_count":    stats["correct"],
+        "boss_q":           boss_q,
+        "boss_won":         boss_won,
+        "boss_bonus":       boss_bonus,
     })
 
 
@@ -391,6 +462,40 @@ def api_collection():
     """, (pid,)).fetchall()
     conn.close()
     return jsonify([dict(r) for r in rows])
+
+
+@app.route("/api/fuse", methods=["POST"])
+def api_fuse():
+    pid = current_player_id()
+    if not pid:
+        return jsonify({"error": "no player"}), 401
+    data = request.get_json()
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name required"}), 400
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, rarity FROM collection WHERE player_id=? AND name=? LIMIT 3",
+        (pid, name)
+    ).fetchall()
+    if len(rows) < 3:
+        conn.close()
+        return jsonify({"error": "need 3 to fuse"}), 400
+    current_rarity = rows[0]["rarity"]
+    next_rarity    = RARITY_UP.get(current_rarity, "legendary")
+    for row in rows:
+        conn.execute("DELETE FROM collection WHERE id=?", (row["id"],))
+    new_br = pick_by_rarity(next_rarity)
+    conn.execute(
+        "INSERT INTO collection (player_id, brainrot_id, name, emoji, rarity) VALUES (?,?,?,?,?)",
+        (pid, new_br["id"], new_br["name"], new_br["emoji"], new_br["rarity"])
+    )
+    conn.commit()
+    coll_count = conn.execute(
+        "SELECT COUNT(*) FROM collection WHERE player_id=?", (pid,)
+    ).fetchone()[0]
+    conn.close()
+    return jsonify({"fused": new_br, "coll_count": coll_count})
 
 
 if __name__ == "__main__":
