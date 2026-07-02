@@ -1115,12 +1115,17 @@ function _tone(freq, dur, vol, type, delay) {
   } catch(e) {}
 }
 const SFX = {
-  correct() { _tone(523,.09); _tone(659,.09,0.28,'sine',.10); _tone(784,.18,0.28,'sine',.20); },
-  wrong()   { _tone(220,.15,0.22,'sawtooth'); _tone(185,.30,0.18,'sawtooth',.15); },
-  timeout() { _tone(280,.40,0.20,'sawtooth'); },
-  levelup() { [523,659,784,1047].forEach(function(f,i){ _tone(f,.14,0.30,'sine',i*.13); }); },
-  streak()  { [392,523,659,784,1047].forEach(function(f,i){ _tone(f,.11,0.28,'triangle',i*.09); }); },
-  tick()    { _tone(880,.04,0.10,'sine'); },
+  correct()   { _tone(523,.09); _tone(659,.09,0.28,'sine',.10); _tone(784,.18,0.28,'sine',.20); },
+  wrong()     { _tone(220,.15,0.22,'sawtooth'); _tone(185,.30,0.18,'sawtooth',.15); },
+  timeout()   { _tone(280,.40,0.20,'sawtooth'); },
+  levelup()   { [523,659,784,1047].forEach(function(f,i){ _tone(f,.14,0.30,'sine',i*.13); }); },
+  streak()    { [392,523,659,784,1047].forEach(function(f,i){ _tone(f,.11,0.28,'triangle',i*.09); }); },
+  tick()      { _tone(880,.04,0.10,'sine'); },
+  boss()      { _tone(110,.30,.22,'sawtooth'); _tone(165,.25,.18,'sawtooth',.25); _tone(220,.40,.20,'sawtooth',.48); _tone(440,.35,.18,'triangle',.80); },
+  bonus()     { [784,988,1175,1319].forEach(function(f,i){ _tone(f,.09,.28,'sine',i*.07); }); _tone(1319,.25,.15,'sine',.36); },
+  steal()     { _tone(440,.10,.24,'sawtooth'); _tone(330,.10,.22,'sawtooth',.09); _tone(220,.30,.22,'sawtooth',.18); },
+  epic_drop() { [523,659,784,1047,1319].forEach(function(f,i){ _tone(f,.13,.30,'sine',i*.10); }); _tone(1319,.55,.14,'sine',.58); },
+  fuse()      { [330,415,494,659,831].forEach(function(f,i){ _tone(f,.10,.28,'triangle',i*.08); }); _tone(1047,.40,.18,'sine',.45); },
 };
 
 const RARITY_COLORS = {
@@ -1421,6 +1426,7 @@ async function loadProblem() {
   bc.classList.add("hidden");
 
   if (data.is_bonus) {
+    SFX.bonus();
     pc.classList.add("bonus-mode");
     bl.classList.remove("hidden");
     $("rival-bubble").textContent = "BONUS ROUND! Get this right for DOUBLE STEAL! 🤑";
@@ -1432,6 +1438,7 @@ async function loadProblem() {
     bc.innerHTML = `⚔️ BOSS BATTLE — QUESTION ${data.boss_question}/3 ${pips}`;
     bc.classList.remove("hidden");
     if (data.boss_question === 1) {
+      SFX.boss();
       $("sb-num").textContent = "⚔️ BOSS BATTLE!";
       $("sb-txt").textContent = "Answer 3 in a row for LEGENDARY!";
       const b = $("streak-banner");
@@ -1508,7 +1515,7 @@ async function submitAnswer(value, isTimeout) {
       setTimeout(() => showCorrectOverlay(data), 500);
     }
   } else {
-    SFX.wrong();
+    if (data.rival_stole) SFX.steal(); else SFX.wrong();
     animateRival("celebrate");
     flashScreen("rgba(255,23,68,.4)");
     setRival(RIVAL_WRONG);
@@ -1552,6 +1559,9 @@ function showCorrectOverlay(data) {
   $("r-body").innerHTML = streakHtml + (data.speed_tier ? speedBadge(data.speed_tier) : "") + brHtml;
   $("r-btn").textContent = "NEXT ▶";
   $("result-overlay").classList.remove("hidden");
+  const topRarity = [data.stolen_brainrot, data.stolen_brainrot2].filter(Boolean)
+    .map(b => b.rarity).find(r => r === "god" || r === "mythic");
+  if (topRarity) SFX.epic_drop();
   spawnConfetti(data.stolen_brainrot2 ? 80 : data.speed_tier === "lightning" ? 60 : 36);
 }
 
@@ -1675,7 +1685,7 @@ async function fuseItem(name) {
   $("r-body").innerHTML    = `<p style="color:#ccc;font-size:.9rem;margin-bottom:8px">3 combined into a higher rarity!</p>` + brainrotCard(data.fused);
   $("r-btn").textContent   = "SWEET! ▶";
   $("result-overlay").classList.remove("hidden");
-  SFX.levelup();
+  SFX.fuse();
   spawnConfetti(50);
 }
 
