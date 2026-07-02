@@ -1641,7 +1641,7 @@ async function openCollection() {
         <div class="cc-name">${item.name}</div>
         ${item.cnt > 1 ? `<div class="cc-cnt">×${item.cnt}</div>` : ""}
         ${item.cnt >= 3 && item.rarity !== "god"
-          ? `<button class="fuse-btn" onclick="fuseItem(${JSON.stringify(item.name)})">⚗️ FUSE ×3 → ${rarityNext[item.rarity] || ""}</button>`
+          ? `<button class="fuse-btn" data-name="${item.name.replace(/"/g,'&quot;')}" onclick="fuseItem(this.dataset.name)">⚗️ FUSE ×3 → ${rarityNext[item.rarity] || ""}</button>`
           : ""}
       </div>`).join("");
   }
