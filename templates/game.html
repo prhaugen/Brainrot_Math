@@ -1631,9 +1631,10 @@ function showLevelUp(level) {
 // ─── COLLECTION ──────────────────────────────────────────────────────────────
 
 async function openCollection() {
-  if (!answered && !paused) {
+  if (rafId !== null) {
     pauseTimer();
     collectionPaused = true;
+    $("timer-bar").style.background = "var(--blue)";
   }
   const res   = await fetch("/api/collection");
   const items = await res.json();
@@ -1662,6 +1663,7 @@ function closeCollection() {
   $("coll-modal").classList.add("hidden");
   if (collectionPaused) {
     collectionPaused = false;
+    $("timer-bar").style.background = "";
     startTimer(timerRemaining);
   }
 }
