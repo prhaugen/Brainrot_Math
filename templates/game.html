@@ -278,6 +278,22 @@
 
     #pause-btn:hover { background: #1a2a4e; }
 
+    #home-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #2a2a5e;
+      background: var(--bg);
+      font-size: 1.1rem;
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: border-color .2s, background .2s;
+    }
+    #home-btn:hover { border-color: var(--gold); background: #1a1a3e; }
+
     .hstat {
       background: var(--bg);
       border-radius: 20px;
@@ -969,6 +985,7 @@
     <div id="lvl-badge">LVL <span id="level-display">1</span></div>
     <button id="pause-btn" onclick="togglePause()">⏸</button>
     <div class="hstat" id="count-display">💎 0</div>
+    <a id="home-btn" href="/" title="Game Hub">🏠</a>
   </header>
 
   <!-- RIVAL -->

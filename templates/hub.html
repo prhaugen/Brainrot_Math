@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Game Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #0a0a1a;
+      --card:   #12122e;
+      --gold:   #ffd700;
+      --blue:   #4fc3f7;
+      --accent: #e94560;
+      --green:  #00e676;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Fredoka One', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px 60px;
+    }
+    .hub-logo  { font-size: 5rem; margin-bottom: 10px; line-height: 1; }
+    h1         { font-size: 3rem; color: var(--gold); letter-spacing: 2px; }
+    .hub-sub   { font-size: 1.05rem; color: #666; margin: 8px 0 44px; }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 22px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .game-card {
+      background: var(--card);
+      border: 3px solid #2a2a5e;
+      border-radius: 26px;
+      padding: 34px 24px 28px;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .game-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--gold);
+      box-shadow: 0 0 32px rgba(255,215,0,.28);
+    }
+    .game-card:active { transform: scale(.98); }
+
+    .game-card.locked {
+      opacity: .38;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .gc-icon  { font-size: 5rem; margin-bottom: 14px; line-height: 1.1; display: block; }
+    .gc-title { font-size: 1.65rem; color: var(--gold); margin-bottom: 8px; }
+    .gc-desc  { font-size: .88rem; color: #aaa; line-height: 1.5; margin-bottom: 20px; min-height: 54px; }
+
+    .gc-btn {
+      display: inline-block;
+      padding: 8px 26px;
+      border-radius: 14px;
+      font-family: 'Fredoka One', Arial, sans-serif;
+      font-size: .95rem;
+      letter-spacing: 1px;
+    }
+    .gc-btn.play { background: var(--green); color: #000; }
+    .gc-btn.soon { background: #2a2a4a; color: #555; }
+
+    footer { margin-top: 52px; font-size: .78rem; color: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="hub-logo">🎮</div>
+  <h1>GAME HUB</h1>
+  <p class="hub-sub">Pick a game and play!</p>
+
+  <div class="game-grid">
+
+    <a class="game-card" href="/brainrot-math">
+      <span class="gc-icon">🦈</span>
+      <div class="gc-title">Brainrot Math Heist</div>
+      <div class="gc-desc">Steal brainrot characters by answering math problems before time runs out!</div>
+      <span class="gc-btn play">▶ PLAY</span>
+    </a>
+
+    <div class="game-card locked">
+      <span class="gc-icon">🔒</span>
+      <div class="gc-title">Coming Soon</div>
+      <div class="gc-desc">A brand-new game is on its way. Check back later!</div>
+      <span class="gc-btn soon">LOCKED</span>
+    </div>
+
+  </div>
+
+  <footer>More games coming soon!</footer>
+
+</body>
+</html>

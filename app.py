@@ -239,7 +239,12 @@ RARITY_UP = {
 # ─── ROUTES ──────────────────────────────────────────────────────────────────
 
 @app.route("/")
-def index():
+def hub():
+    return render_template("hub.html")
+
+
+@app.route("/brainrot-math")
+def brainrot_math():
     return render_template("game.html")
 
 
